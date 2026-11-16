@@ -28,8 +28,8 @@
     ACCOUNT_URL: "mi-cuenta.html",
     TEAM_URL: "equipo.html",
 
-    /* Llamadas y videollamadas del plan Taller Pro: se agendan por WhatsApp del taller. */
-    CALLS_WHATSAPP_URL: "https://wa.me/56987785601?text=Hola%2C%20soy%20suscriptor%20Taller%20Pro%20y%20quiero%20agendar%20una%20llamada"
+    /* Llamadas y videollamadas del plan Taller Pro: WhatsApp de Frío Austral para suscriptores. */
+    CALLS_WHATSAPP_URL: "https://wa.me/56961029188?text=Hola%2C%20soy%20suscriptor%20Taller%20Pro%20y%20quiero%20agendar%20una%20llamada"
   };
 
   /* Compatibilidad con código anterior. */

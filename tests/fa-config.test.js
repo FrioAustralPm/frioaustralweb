@@ -16,6 +16,8 @@ test("precios de la suscripción en un solo lugar", () => {
   const cfg = require("../assets/fa-config.js");
   assert.deepEqual(Object.fromEntries(Object.entries(cfg.PLANS).map(([k, p]) => [k, p.amount])), { basico: 5000, pro: 10000, premium: 20000 });
   assert.deepEqual(cfg.PLAN_LABELS, { basico: "Consulta", pro: "Ilimitado", premium: "Taller Pro" });
+  assert.equal(cfg.PLANS.premium.calls, true);
+  assert.match(cfg.CALLS_WHATSAPP_URL, /^https:\/\/wa\.me\/56961029188\?/);
 });
 
 test("el código de la Academia se mantiene en el proyecto", () => {

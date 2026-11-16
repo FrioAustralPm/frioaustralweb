@@ -36,7 +36,7 @@ Base: demo del cliente `demo-cliente` del 5 de noviembre de 2026.
 
 ## Datos (Supabase)
 
-Proyecto dedicado **Frio Austral** (`akanruuybegwxfjxdpub`, región São Paulo, plan gratis). Migración: `supabase/migrations/20261112220000_suscripciones_mi_cuenta.sql` (ya aplicada).
+Proyecto dedicado **Frío Austral** (`kgxwjywupnnvceyziymj`, región us-east-1, plan gratis). Migración: `supabase/migrations/20261112220000_suscripciones_mi_cuenta.sql` (ya aplicada en este proyecto).
 
 Tablas `subscribers`, `messages`, `payments`, `admins`, todas con RLS: cada usuario solo puede **leer** lo suyo y nadie escribe desde el navegador; las escrituras pasan por `/api` con la service role, que aplica cupos y reglas.
 
@@ -49,7 +49,7 @@ Ver `.env.example`. **Nunca** se suben claves a git.
 | `FLOW_API_KEY`, `FLOW_SECRET_KEY` | Flow → Integraciones → Datos de integración (sandbox o producción) | Sí |
 | `FLOW_API_URL` | `https://sandbox.flow.cl/api` (pruebas) o `https://www.flow.cl/api` (real) | No |
 | `SITE_URL` | Dominio público, sin `/` final | No |
-| `SUPABASE_URL` | `https://akanruuybegwxfjxdpub.supabase.co` | No |
+| `SUPABASE_URL` | `https://kgxwjywupnnvceyziymj.supabase.co` | No |
 | `SUPABASE_ANON_KEY` | Supabase → Project Settings → API Keys (anon / publishable) | No |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Project Settings → API Keys (service_role / secret) | **Sí** |
 | `ADMIN_EMAILS` | Emails del equipo que entran a `equipo.html`, separados por coma | No |
