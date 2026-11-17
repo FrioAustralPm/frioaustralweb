@@ -127,7 +127,7 @@
       <span class="mono fa-ej">Preguntas de este período</span>
       <b>${q.unlimited ? "Ilimitadas" : `${q.left} de ${q.limit} disponibles`}</b>
       ${q.unlimited ? `<small>Llevas ${q.used} en este período.</small>` : `<div class="fa-bar" role="progressbar" aria-valuemin="0" aria-valuemax="${q.limit}" aria-valuenow="${q.used}"><i style="width:${pct}%"></i></div><small>Usaste ${q.used}. Se renuevan con cada cobro mensual${q.periodTo ? " (" + fdate(q.periodTo) + ")" : ""}.</small>`}
-      ${st.features.whatsapp || st.features.videollamada || st.features.calls ? `<a class="btn btn-wa btn-sm" href="${esc(C.CALLS_WHATSAPP_URL || "#")}" target="_blank" rel="noopener">${st.features.videollamada ? "Consultar por WhatsApp o agendar videollamada" : "Consultar por WhatsApp"}</a>` : ""}
+      ${st.features.videollamada ? `<button class="btn btn-line btn-sm" data-act="video">Agendar videollamada</button>` : ""}
     </div>`;
   }
 
@@ -215,6 +215,10 @@
         btn.disabled = true;
         await A.api("/api/account?action=change-plan", { body: { plan: np } });
         await load(true);
+      } else if (kind === "video") {
+        tab = "chat"; render();
+        const ta = $("#faMsg");
+        if (ta && !ta.disabled) { ta.value = "Quiero agendar una videollamada de asesoría. Propongo este día y hora: "; ta.focus(); }
       } else if (kind === "card") {
         btn.disabled = true;
         const out = await A.api("/api/account?action=change-card", { body: {} });

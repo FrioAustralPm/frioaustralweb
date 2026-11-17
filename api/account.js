@@ -54,12 +54,11 @@ async function me(req, res, user) {
     features: plan ? {
       calls: !!plan.calls,
       community: !!plan.community,
-      whatsapp: !!plan.whatsapp,
       videollamada: !!plan.videollamada,
       ver_preguntas_otros: !!plan.ver_preguntas_otros,
       ebooks_gratis: !!plan.ebooks_gratis,
       biblioteca: !!plan.biblioteca,
-    } : { calls: false, community: false, whatsapp: false, videollamada: false, ver_preguntas_otros: false, ebooks_gratis: false, biblioteca: false },
+    } : { calls: false, community: false, videollamada: false, ver_preguntas_otros: false, ebooks_gratis: false, biblioteca: false },
     messages: (messages || []).reverse(),
     payments: payments || [],
     flowEnv: flow.getFlowConfig().env,

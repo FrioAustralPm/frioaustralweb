@@ -175,7 +175,7 @@ test("me del Plan Profesional expone los beneficios extra", async () => {
   assert.equal(r.body.subscriber.planName, "Plan Profesional");
   assert.equal(r.body.subscriber.amount, 20000);
   assert.equal(r.body.features.ver_preguntas_otros, true);
-  assert.equal(r.body.features.whatsapp, true);
+  assert.equal(r.body.features.whatsapp, undefined);
   assert.equal(r.body.features.videollamada, true);
   assert.equal(r.body.features.ebooks_gratis, true);
   assert.equal(r.body.features.biblioteca, true);

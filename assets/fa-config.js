@@ -15,19 +15,17 @@
    los links y se haga el cambio. */
 (function (root) {
   function withFeatures(p) {
-    const whatsapp = !!p.whatsapp;
     const videollamada = !!p.videollamada;
     const ver_preguntas_otros = !!p.ver_preguntas_otros;
     const ebooks_gratis = !!p.ebooks_gratis;
     const biblioteca = !!p.biblioteca;
     return Object.assign({}, p, {
-      whatsapp,
       videollamada,
       ver_preguntas_otros,
       ebooks_gratis,
       biblioteca,
       /* Alias que ya usa la API y Mi cuenta. */
-      calls: !!(p.calls || whatsapp || videollamada),
+      calls: !!(p.calls || videollamada),
       community: !!(p.community || ver_preguntas_otros),
       hotmartCheckoutUrl: p.hotmartCheckoutUrl || "",
     });
@@ -80,13 +78,11 @@
         tagline: "Para quienes buscan capacitación continua y acompañamiento personalizado.",
         benefits: [
           "Preguntas ilimitadas.",
-          "Consultas mediante WhatsApp.",
           "Videollamadas de asesoría.",
           "Acceso a todas las preguntas realizadas por otros usuarios.",
           "Acceso gratuito a todos los ebooks disponibles.",
           "Biblioteca de conocimientos para estudiar y profundizar.",
         ],
-        whatsapp: true,
         videollamada: true,
         ver_preguntas_otros: true,
         ebooks_gratis: true,
@@ -99,8 +95,6 @@
     ACCOUNT_URL: "mi-cuenta.html",
     TEAM_URL: "equipo.html",
 
-    /* Llamadas y videollamadas del Plan Profesional: se agendan por WhatsApp del taller. */
-    CALLS_WHATSAPP_URL: "https://wa.me/56987785601?text=Hola%2C%20soy%20suscriptor%20Plan%20Profesional%20y%20quiero%20agendar%20una%20llamada",
   };
 
   /* Compatibilidad con código anterior. */

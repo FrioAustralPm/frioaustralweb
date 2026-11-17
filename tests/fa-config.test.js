@@ -24,7 +24,8 @@ test("precios de la suscripción en un solo lugar", () => {
   assert.equal(cfg.PLANS.premium.questionsPerPeriod, null);
   assert.equal(cfg.PLANS.basico.ver_preguntas_otros, false);
   assert.equal(cfg.PLANS.pro.ver_preguntas_otros, false);
-  assert.equal(cfg.PLANS.premium.whatsapp, true);
+  for (const p of Object.values(cfg.PLANS)) assert.equal(p.whatsapp, undefined, "ningún plan incluye WhatsApp");
+  assert.equal(cfg.CALLS_WHATSAPP_URL, undefined);
   assert.equal(cfg.PLANS.premium.videollamada, true);
   assert.equal(cfg.PLANS.premium.ver_preguntas_otros, true);
   assert.equal(cfg.PLANS.premium.ebooks_gratis, true);
@@ -45,7 +46,6 @@ test("los textos de los planes coinciden con lo publicado", () => {
   assert.equal(cfg.PLANS.premium.tagline, "Para quienes buscan capacitación continua y acompañamiento personalizado.");
   assert.deepEqual(cfg.PLANS.premium.benefits, [
     "Preguntas ilimitadas.",
-    "Consultas mediante WhatsApp.",
     "Videollamadas de asesoría.",
     "Acceso a todas las preguntas realizadas por otros usuarios.",
     "Acceso gratuito a todos los ebooks disponibles.",

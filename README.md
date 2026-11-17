@@ -8,7 +8,7 @@ Base: demo del cliente `demo-cliente` del 5 de noviembre de 2026.
 - **Academia desactivada** (el código sigue completo). Se reactiva con `ACADEMIA_ENABLED: true` en `assets/fa-config.js`.
 - **Comprar curso** → checkout de **Hotmart** (`HOTMART_CHECKOUT_URL` en `assets/fa-config.js`).
 - **Suscripción para preguntarle al equipo** → **Flow, cobro mensual automático** con tarjeta registrada, hasta que el cliente cancele. Los planes ya tienen un campo `hotmartCheckoutUrl` (vacío) para pegar el link de Hotmart cuando esté listo; el cobro sigue en Flow hasta ese cambio.
-- **Mi cuenta** (`mi-cuenta.html`): el suscriptor ve su plan, estado, próximo cobro, tarjeta, preguntas disponibles del período, el **chat con el equipo**, sus **pagos**, y puede **cancelar**, **cambiar de plan** o **cambiar la tarjeta**. El **Plan Profesional** suma **preguntas de otros usuarios** (solo lectura, sin nombre ni correo), botón para **consultar por WhatsApp o agendar videollamada**, y secciones de **ebooks** y **biblioteca** (próximamente).
+- **Mi cuenta** (`mi-cuenta.html`): el suscriptor ve su plan, estado, próximo cobro, tarjeta, preguntas disponibles del período, el **chat con el equipo**, sus **pagos**, y puede **cancelar**, **cambiar de plan** o **cambiar la tarjeta**. El **Plan Profesional** suma **preguntas de otros usuarios** (solo lectura, sin nombre ni correo), botón para **agendar videollamada** (se pide por el chat de la plataforma), y secciones de **ebooks** y **biblioteca** (próximamente).
 - **Panel del equipo** (`equipo.html`): suscriptores, preguntas por responder, responder, pagos, estado en Flow y botón para crear los planes en Flow.
 - `admin.html` es la maqueta anterior (catálogo, video y links guardados solo en el navegador). Muestra un aviso que apunta al panel real.
 
@@ -20,7 +20,7 @@ Base: demo del cliente `demo-cliente` del 5 de noviembre de 2026.
 |---|---|---|---|---|
 | Plan Aprendiz | Inicial | `basico` | $5.000 CLP | 3 preguntas mensuales |
 | Plan Técnico | Intermedio | `pro` | $10.000 CLP | Preguntas ilimitadas |
-| Plan Profesional | Premium | `premium` | $20.000 CLP | Ilimitadas + WhatsApp + videollamadas + preguntas de otros + ebooks y biblioteca (próximamente) |
+| Plan Profesional | Premium | `premium` | $20.000 CLP | Ilimitadas + videollamadas + preguntas de otros + ebooks y biblioteca (próximamente) |
 
 - El período es el ciclo de cobro de Flow (si falta, los últimos 30 días). Solo cuentan los mensajes del cliente.
 - Flow no permite cambiar el monto de un plan con suscriptores: cada monto crea su propio plan (`fa-basico-5000`, …). Si cambias un precio, los nuevos suscriptores toman el nuevo plan y los antiguos siguen con el suyo.
