@@ -43,7 +43,9 @@
         <div class="fa-card glass"><span class="fa-ej mono">Activos</span><b>${st.active}</b><small>de ${st.total}</small></div>
         <div class="fa-card glass"><span class="fa-ej mono">Ingreso mensual (activos)</span><b>${clp(st.mrr)}</b></div>
       </div>
-      <section class="fa-card glass fa-eq-vids"><span class="fa-ej mono">Videollamadas (Plan Profesional)</span>${vidsView()}</section>
+      <section class="fa-card glass fa-eq-vids"><span class="fa-ej mono">Videollamadas (Plan Profesional)</span>
+        <p class="fa-sub-note">Se abre en una pestaña nueva, sin límite de tiempo. El primero del equipo en entrar puede tener que iniciar sesión con Google o GitHub para abrir la sala.</p>
+        ${vidsView()}</section>
       <div class="fa-eq">
         <aside class="fa-card glass fa-eq-list">
           <div class="fa-tabs">${[["pendientes", "Por responder"], ["activos", "Activos"], ["problemas", "Con problemas"], ["todos", "Todos"]].map(([k, l]) => `<button data-f="${k}" class="${filter === k ? "on" : ""}">${l}</button>`).join("")}</div>
@@ -66,6 +68,7 @@
     bindVids();
   }
 
+  const jitUrl = (u) => /^https:\/\/meet\.jit\.si\/frioaustral-[0-9a-f-]{36}$/i.test(String(u || ""));
   const VST = { solicitada: ["Pide confirmación", "fa-warn"], propuesta: ["Esperando al cliente", "fa-warn"], confirmada: ["Confirmada", "fa-ok"] };
   const fwhen = (i) => new Date(i).toLocaleString("es-CL", { timeZone: "America/Santiago", weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
   function vidsView() {
@@ -74,7 +77,7 @@
       const s = VST[v.status] || [v.status, ""];
       let acts = "";
       if (v.status === "solicitada") acts += `<button class="btn btn-red btn-sm" data-vconf="${esc(v.id)}">Confirmar</button>`;
-      if (v.status === "confirmada") acts += v.canJoin ? `<button class="btn btn-red btn-sm" data-vjoin="${esc(v.url)}">Entrar a la videollamada</button>` : `<button class="btn btn-line btn-sm" disabled>Entrar a la videollamada</button>`;
+      if (v.status === "confirmada") acts += v.canJoin && jitUrl(v.url) ? `<a class="btn btn-red btn-sm" href="${esc(v.url)}" target="_blank" rel="noopener">Entrar a la videollamada</a>` : `<button class="btn btn-line btn-sm" disabled>Entrar a la videollamada</button>`;
       acts += ` <label class="fa-inline">Otra hora <input type="datetime-local" data-vwhen="${esc(v.id)}"></label><button class="btn btn-line btn-sm" data-vprop="${esc(v.id)}">Proponer</button> <button class="btn btn-line btn-sm fa-danger" data-vcan="${esc(v.id)}">Cancelar</button>`;
       return `<div class="fa-q"><b>${esc(v.nombre || v.email)} · ${esc(fwhen(v.scheduledAt))}</b> <span class="fa-pill ${s[1]}">${esc(s[0])}</span>${v.note ? `<p>${esc(v.note)}</p>` : ""}<div class="fa-row" style="flex-wrap:wrap;gap:8px">${acts}</div></div>`;
     }).join("");
@@ -88,7 +91,6 @@
       if (!inp || !inp.value) return alert("Elige la nueva fecha y hora.");
       run("video-propose", { id, when: new Date(inp.value).toISOString() });
     }));
-    root.querySelectorAll("[data-vjoin]").forEach((b) => (b.onclick = () => window.FAJitsi.open(b.getAttribute("data-vjoin"))));
   }
   async function loadVids() { try { vids = (await A.api("/api/admin?action=videos")).items || []; } catch (e) { vids = []; } }
 

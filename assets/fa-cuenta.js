@@ -172,6 +172,7 @@
       ${st.features.community || st.features.ver_preguntas_otros ? `<div class="fa-pane glass" data-pane="base" ${tab === "base" ? "" : "hidden"}><form id="faBaseForm" class="fa-input"><input name="q" placeholder="Busca por síntoma, vehículo, gas…"><button class="btn btn-line btn-sm">Buscar</button></form><div id="faBase"><p class="fa-sub-note">Consulta, solo lectura, las preguntas ya respondidas a otros usuarios. No aparecen nombres ni correos.</p></div></div>` : ""}
       ${st.features.videollamada ? `<div class="fa-pane glass" data-pane="video" ${tab === "video" ? "" : "hidden"}>
         <form id="faVidForm" class="fa-vid-form"><label>Día y hora que propones<input type="datetime-local" name="when" required></label><label>Tema (opcional)<input name="note" maxlength="500" placeholder="Ej.: diagnóstico de compresor en Hilux 2018"></label><button class="btn btn-red btn-sm">Solicitar videollamada</button></form>
+        <p class="fa-sub-note">Se abre en una pestaña nueva, sin límite de tiempo. El primero del equipo en entrar puede tener que iniciar sesión con Google o GitHub para abrir la sala.</p>
         <p class="fa-flow-err" id="faVidErr" role="alert" hidden></p>
         <div id="faVids"><p class="fa-sub-note">Cargando…</p></div></div>` : ""}
       ${st.features.ebooks_gratis ? `<div class="fa-pane glass" data-pane="ebooks" ${tab === "ebooks" ? "" : "hidden"}><div class="fa-soon"><b>Próximamente</b><p class="fa-sub-note">El acceso gratuito a los ebooks del Plan Profesional se publicará aquí. Todavía no hay títulos disponibles.</p></div></div>` : ""}
@@ -200,13 +201,14 @@
     } catch (e) { box.innerHTML = `<p class="fa-flow-err">${esc(e.message)}</p>`; }
   }
 
-  /* ---------- Videollamadas (Jitsi Meet) ---------- */
+  /* ---------- Videollamadas (Jitsi Meet, en pestaña nueva y sin límite de tiempo) ---------- */
+  const jitUrl = (u) => /^https:\/\/meet\.jit\.si\/frioaustral-[0-9a-f-]{36}$/i.test(String(u || ""));
   const VST = { solicitada: ["Esperando confirmación del equipo", "fa-warn"], propuesta: ["El equipo propone otra hora", "fa-warn"], confirmada: ["Confirmada", "fa-ok"], cancelada: ["Cancelada", "fa-bad"] };
   const fwhen = (i) => new Date(i).toLocaleString("es-CL", { timeZone: "America/Santiago", weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
   function videoRow(v) {
     const s = VST[v.status] || [v.status, ""];
     let acts = "";
-    if (v.status === "confirmada") acts = v.canJoin ? `<button class="btn btn-red btn-sm" data-vjoin="${esc(v.url)}">Entrar a la videollamada</button>` : `<button class="btn btn-line btn-sm" disabled title="Se habilita 10 minutos antes">Entrar a la videollamada</button><small class="fa-sub-note">Se habilita desde ${fwhen(v.joinFrom)}.</small>`;
+    if (v.status === "confirmada") acts = v.canJoin && jitUrl(v.url) ? `<a class="btn btn-red btn-sm" href="${esc(v.url)}" target="_blank" rel="noopener">Entrar a la videollamada</a>` : `<button class="btn btn-line btn-sm" disabled title="Se habilita 10 minutos antes">Entrar a la videollamada</button><small class="fa-sub-note">Se habilita desde ${fwhen(v.joinFrom)}.</small>`;
     if (v.status === "propuesta") acts = `<button class="btn btn-red btn-sm" data-vacc="${esc(v.id)}">Aceptar esta hora</button>`;
     if (v.status !== "cancelada") acts += ` <button class="btn btn-line btn-sm fa-danger" data-vcan="${esc(v.id)}">Cancelar</button>`;
     return `<div class="fa-q fa-vid"><b>${esc(fwhen(v.scheduledAt))}</b> <span class="fa-pill ${s[1]}">${esc(s[0])}</span>${v.note ? `<p>${esc(v.note)}</p>` : ""}<div class="fa-row">${acts}</div></div>`;
@@ -216,7 +218,6 @@
     try {
       const out = await A.api("/api/account?action=videos");
       box.innerHTML = out.items.map(videoRow).join("") || `<p class="fa-sub-note">Aún no tienes videollamadas. Propón un día y hora y el equipo te confirma.</p>`;
-      box.querySelectorAll("[data-vjoin]").forEach((b) => (b.onclick = () => openJitsi(b.getAttribute("data-vjoin"))));
       box.querySelectorAll("[data-vacc]").forEach((b) => (b.onclick = () => videoAct("video-accept", b.getAttribute("data-vacc"))));
       box.querySelectorAll("[data-vcan]").forEach((b) => (b.onclick = () => { if (confirm("¿Cancelar esta videollamada?")) videoAct("video-cancel", b.getAttribute("data-vcan")); }));
     } catch (e) { box.innerHTML = `<p class="fa-flow-err">${esc(e.message)}</p>`; }
@@ -236,8 +237,6 @@
     } catch (ex) { err.hidden = false; err.textContent = ex.message === "Invalid time value" ? "Elige una fecha y hora." : ex.message; }
     btn.disabled = false;
   }
-  function openJitsi(url) { (window.FAJitsi || { open: (u) => window.open(u, "_blank", "noopener") }).open(url); }
-
   async function sendMsg(e) {
     e.preventDefault();
     const ta = $("#faMsg"), err = $("#faMsgErr"), btn = $("#faMsgForm button");

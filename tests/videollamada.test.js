@@ -144,3 +144,27 @@ test("la migración deja la tabla sin acceso desde el navegador", () => {
   assert.match(sql, /revoke all on public\.videocalls from anon, authenticated/);
   assert.doesNotMatch(sql, /create policy/);
 });
+
+test("Entrar a la videollamada abre meet.jit.si en una pestaña nueva, sin embeber", () => {
+  const fs = require("fs");
+  const path = require("path");
+  const read = (f) => fs.readFileSync(path.join(__dirname, "..", f), "utf8");
+  assert.equal(fs.existsSync(path.join(__dirname, "../assets/fa-jitsi.js")), false);
+  for (const f of ["mi-cuenta.html", "equipo.html"]) {
+    const html = read(f);
+    assert.doesNotMatch(html, /fa-jitsi\.js/);
+    assert.doesNotMatch(html, /external_api\.js/);
+  }
+  assert.doesNotMatch(read("assets/fa-app.css"), /\.fa-jitsi/);
+  const note = "Se abre en una pestaña nueva, sin límite de tiempo. El primero del equipo en entrar puede tener que iniciar sesión con Google o GitHub para abrir la sala.";
+  for (const f of ["assets/fa-cuenta.js", "assets/fa-equipo.js"]) {
+    const js = read(f);
+    assert.ok(js.includes(note), f);
+    assert.match(js, /target="_blank"/);
+    assert.match(js, /rel="noopener"/);
+    assert.match(js, /href="\$\{esc\(v\.url\)}"/);
+    assert.doesNotMatch(js, /FAJitsi/);
+    assert.doesNotMatch(js, /<iframe/);
+    assert.doesNotMatch(js, /external_api/);
+  }
+});

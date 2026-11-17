@@ -221,6 +221,4 @@ html{scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.18) transparent}
 
 .fa-vid-form{display:grid;gap:10px;grid-template-columns:1fr;margin-bottom:12px}@media(min-width:760px){.fa-vid-form{grid-template-columns:1fr 2fr auto;align-items:end}}
 .fa-vid .fa-row{margin-top:8px;flex-wrap:wrap;gap:8px;align-items:center}
-.fa-jitsi .fa-jitsi-box{width:min(1100px,96vw);max-width:none}
-.fa-jitsi iframe{width:100%;height:min(70vh,680px);border:0;border-radius:12px;margin-top:10px;background:#000}
 .fa-eq-vids{margin:18px 0}.fa-eq-vids .fa-q{display:grid;gap:6px}

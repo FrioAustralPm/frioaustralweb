@@ -1,5 +1,5 @@
 /* Videollamadas de asesoría (Plan Profesional) con Jitsi Meet (meet.jit.si).
-   La sala es aleatoria (frioaustral-<uuid>) y la crea el servidor. */
+   La sala es aleatoria (frioaustral-<uuid>), la crea el servidor y se abre en una pestaña nueva. */
 const crypto = require("crypto");
 const { HttpError } = require("./supa");
 
