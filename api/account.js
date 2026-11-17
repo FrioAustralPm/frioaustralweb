@@ -7,11 +7,16 @@
  *   POST /api/account?action=cancel                                     cancela al final del período
  *   POST /api/account?action=change-plan   {plan}                       cambia de plan
  *   POST /api/account?action=change-card                                registrar otra tarjeta en Flow
+ *   GET  /api/account?action=videos                                     videollamadas (Plan Profesional)
+ *   POST /api/account?action=video-request {when, note}                 pide una videollamada
+ *   POST /api/account?action=video-accept  {id}                         acepta la hora que propuso el equipo
+ *   POST /api/account?action=video-cancel  {id}                         cancela la solicitud
  *   GET  /api/account?action=community&q=                               preguntas de otros usuarios (Plan Profesional, anonimizadas)
  */
 const flow = require("./_lib/flow");
 const { getUserFromToken, rest, enc, adminCreateUser, HttpError } = require("./_lib/supa");
 const S = require("./_lib/subs");
+const V = require("./_lib/video");
 const { readBody, send, bearer, queryOf, handle } = require("./_lib/http");
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -173,7 +178,58 @@ async function community(req, res, user) {
   send(res, 200, { ok: true, items: items.slice(0, 60) });
 }
 
-const ROUTES = { me, start, message, cancel, "change-plan": changePlan, "change-card": changeCard, community };
+async function requireVideoPlan(user) {
+  const sub = await S.maybeSync(await S.getSubscriber(user.id));
+  const plan = sub && sub.plan ? flow.getPlan(sub.plan) : null;
+  if (!plan || !plan.videollamada || !S.canAsk(sub)) throw new HttpError(403, "Las videollamadas de asesoría son parte del Plan Profesional.", "not_premium");
+  return sub;
+}
+
+async function ownCall(user, id) {
+  if (!/^[0-9a-f-]{36}$/i.test(String(id || ""))) throw new HttpError(400, "Solicitud no válida.", "bad_id");
+  const rows = await rest(`videocalls?select=*&id=eq.${enc(id)}&user_id=eq.${enc(user.id)}&limit=1`);
+  if (!rows || !rows[0]) throw new HttpError(404, "No encontramos esa videollamada.", "not_found");
+  return rows[0];
+}
+
+async function videos(req, res, user) {
+  await requireVideoPlan(user);
+  const rows = await rest(`videocalls?select=*&user_id=eq.${enc(user.id)}&order=scheduled_at.desc&limit=20`);
+  send(res, 200, { ok: true, items: (rows || []).map((v) => V.publicCall(v)) });
+}
+
+async function videoRequest(req, res, user) {
+  needPost(req);
+  await requireVideoPlan(user);
+  const b = await readBody(req);
+  const when = V.parseWhen(b.when);
+  const open = await rest(`videocalls?select=id&user_id=eq.${enc(user.id)}&status=in.(solicitada,propuesta)&limit=5`);
+  if (open && open.length >= 2) throw new HttpError(409, "Ya tienes solicitudes pendientes. Espera la respuesta del equipo.", "too_many");
+  const rows = await rest("videocalls", {
+    method: "POST", prefer: "return=representation",
+    body: [{ user_id: user.id, scheduled_at: when, status: "solicitada", proposed_by: "cliente", room: V.newRoom(), note: V.cleanNote(b.note) }],
+  });
+  send(res, 201, { ok: true, item: V.publicCall(rows[0]) });
+}
+
+async function videoAccept(req, res, user) {
+  needPost(req);
+  await requireVideoPlan(user);
+  const v = await ownCall(user, (await readBody(req)).id);
+  if (v.status !== "propuesta") throw new HttpError(400, "No hay una hora propuesta por el equipo para aceptar.", "bad_state");
+  const rows = await rest(`videocalls?id=eq.${enc(v.id)}&user_id=eq.${enc(user.id)}`, { method: "PATCH", prefer: "return=representation", body: { status: "confirmada", updated_at: new Date().toISOString() } });
+  send(res, 200, { ok: true, item: V.publicCall(rows[0]) });
+}
+
+async function videoCancel(req, res, user) {
+  needPost(req);
+  const v = await ownCall(user, (await readBody(req)).id);
+  if (v.status === "cancelada") return send(res, 200, { ok: true, item: V.publicCall(v) });
+  const rows = await rest(`videocalls?id=eq.${enc(v.id)}&user_id=eq.${enc(user.id)}`, { method: "PATCH", prefer: "return=representation", body: { status: "cancelada", updated_at: new Date().toISOString() } });
+  send(res, 200, { ok: true, item: V.publicCall(rows[0]) });
+}
+
+const ROUTES = { me, start, message, cancel, "change-plan": changePlan, "change-card": changeCard, community, videos, "video-request": videoRequest, "video-accept": videoAccept, "video-cancel": videoCancel };
 
 module.exports = handle(async (req, res) => {
   const action = String(queryOf(req).action || "");

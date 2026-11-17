@@ -1,15 +1,20 @@
 /**
- * API del panel del equipo (Guillermo). Requiere sesión de Supabase de un admin
+ * API del panel del equipo. Requiere sesión de Supabase de un admin
  * (email en ADMIN_EMAILS o fila en la tabla admins).
  *   GET  /api/admin?action=list
  *   GET  /api/admin?action=thread&user=<uuid>
  *   POST /api/admin?action=reply        {user, body}
  *   POST /api/admin?action=sync         {user}
+ *   GET  /api/admin?action=videos                     solicitudes de videollamada
+ *   POST /api/admin?action=video-confirm  {id}
+ *   POST /api/admin?action=video-propose  {id, when, note}
+ *   POST /api/admin?action=video-cancel   {id}
  *   POST /api/admin?action=setup-plans  crea en Flow los planes de fa-config.js (idempotente)
  */
 const flow = require("./_lib/flow");
 const { getUserFromToken, rest, enc, HttpError } = require("./_lib/supa");
 const S = require("./_lib/subs");
+const V = require("./_lib/video");
 const { readBody, send, bearer, queryOf, handle } = require("./_lib/http");
 
 const UUID_RE = /^[0-9a-f-]{36}$/i;
@@ -94,7 +99,53 @@ async function whoami(req, res, admin) {
   send(res, 200, { ok: true, email: admin.email });
 }
 
-const ROUTES = { list, thread, reply, sync, "setup-plans": setupPlans, whoami };
+async function getCall(id) {
+  if (!UUID_RE.test(String(id || ""))) throw new HttpError(400, "Solicitud no válida.", "bad_id");
+  const rows = await rest(`videocalls?select=*&id=eq.${enc(id)}&limit=1`);
+  if (!rows || !rows[0]) throw new HttpError(404, "No encontramos esa videollamada.", "not_found");
+  return rows[0];
+}
+
+async function patchCall(id, body) {
+  const rows = await rest(`videocalls?id=eq.${enc(id)}`, { method: "PATCH", prefer: "return=representation", body: { ...body, updated_at: new Date().toISOString() } });
+  return rows[0];
+}
+
+async function videos(req, res) {
+  const [rows, subs] = await Promise.all([
+    rest("videocalls?select=*&status=neq.cancelada&order=scheduled_at.asc&limit=200"),
+    rest("subscribers?select=user_id,nombre,email&limit=1000"),
+  ]);
+  const who = Object.fromEntries((subs || []).map((s) => [s.user_id, s]));
+  const items = (rows || []).filter((v) => v.status !== "cancelada").map((v) => ({
+    ...V.publicCall(v), user_id: v.user_id, nombre: (who[v.user_id] || {}).nombre || "", email: (who[v.user_id] || {}).email || "",
+  }));
+  send(res, 200, { ok: true, items });
+}
+
+async function videoConfirm(req, res) {
+  if (req.method !== "POST") throw new HttpError(405, "Método no permitido.", "method");
+  const v = await getCall((await readBody(req)).id);
+  if (v.status !== "solicitada") throw new HttpError(400, "Solo se puede confirmar una hora que propuso el cliente.", "bad_state");
+  send(res, 200, { ok: true, item: V.publicCall(await patchCall(v.id, { status: "confirmada" })) });
+}
+
+async function videoPropose(req, res) {
+  if (req.method !== "POST") throw new HttpError(405, "Método no permitido.", "method");
+  const b = await readBody(req);
+  const v = await getCall(b.id);
+  if (v.status === "cancelada") throw new HttpError(400, "Esa videollamada está cancelada.", "bad_state");
+  const item = await patchCall(v.id, { status: "propuesta", proposed_by: "equipo", scheduled_at: V.parseWhen(b.when), note: V.cleanNote(b.note) });
+  send(res, 200, { ok: true, item: V.publicCall(item) });
+}
+
+async function videoCancel(req, res) {
+  if (req.method !== "POST") throw new HttpError(405, "Método no permitido.", "method");
+  const v = await getCall((await readBody(req)).id);
+  send(res, 200, { ok: true, item: V.publicCall(await patchCall(v.id, { status: "cancelada" })) });
+}
+
+const ROUTES = { list, thread, reply, sync, "setup-plans": setupPlans, whoami, videos, "video-confirm": videoConfirm, "video-propose": videoPropose, "video-cancel": videoCancel };
 
 module.exports = handle(async (req, res) => {
   const fn = ROUTES[String(queryOf(req).action || "")];

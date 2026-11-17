@@ -4,7 +4,7 @@
   const { esc, clp, fdate } = A;
   const $ = (s, r) => (r || document).querySelector(s);
   const root = $("#faEquipo");
-  let list = null, sel = null, thread = null, filter = "pendientes", q = "", timer = null;
+  let vids = [], list = null, sel = null, thread = null, filter = "pendientes", q = "", timer = null;
   const STATUS = { activa: "Activa", cancelada_fin_periodo: "Cancela a fin de período", pago_pendiente: "Pago en proceso", pendiente: "Por iniciar", pendiente_tarjeta: "Sin tarjeta", morosa: "Morosa", cancelada: "Cancelada", sin_suscripcion: "Sin plan" };
   const cls = (s) => (s === "activa" ? "fa-ok" : s === "morosa" || s === "cancelada" || s === "sin_suscripcion" ? "fa-bad" : "fa-warn");
 
@@ -43,6 +43,7 @@
         <div class="fa-card glass"><span class="fa-ej mono">Activos</span><b>${st.active}</b><small>de ${st.total}</small></div>
         <div class="fa-card glass"><span class="fa-ej mono">Ingreso mensual (activos)</span><b>${clp(st.mrr)}</b></div>
       </div>
+      <section class="fa-card glass fa-eq-vids"><span class="fa-ej mono">Videollamadas (Plan Profesional)</span>${vidsView()}</section>
       <div class="fa-eq">
         <aside class="fa-card glass fa-eq-list">
           <div class="fa-tabs">${[["pendientes", "Por responder"], ["activos", "Activos"], ["problemas", "Con problemas"], ["todos", "Todos"]].map(([k, l]) => `<button data-f="${k}" class="${filter === k ? "on" : ""}">${l}</button>`).join("")}</div>
@@ -62,7 +63,34 @@
     const qi = $("#faEqQ"); qi.oninput = () => { q = qi.value.trim().toLowerCase(); const pos = qi.selectionStart; render(); const n = $("#faEqQ"); n.focus(); n.setSelectionRange(pos, pos); };
     root.querySelectorAll("[data-u]").forEach((b) => (b.onclick = () => open(b.getAttribute("data-u"))));
     bindThread();
+    bindVids();
   }
+
+  const VST = { solicitada: ["Pide confirmación", "fa-warn"], propuesta: ["Esperando al cliente", "fa-warn"], confirmada: ["Confirmada", "fa-ok"] };
+  const fwhen = (i) => new Date(i).toLocaleString("es-CL", { timeZone: "America/Santiago", weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+  function vidsView() {
+    if (!vids.length) return `<p class="fa-sub-note">No hay solicitudes de videollamada.</p>`;
+    return vids.map((v) => {
+      const s = VST[v.status] || [v.status, ""];
+      let acts = "";
+      if (v.status === "solicitada") acts += `<button class="btn btn-red btn-sm" data-vconf="${esc(v.id)}">Confirmar</button>`;
+      if (v.status === "confirmada") acts += v.canJoin ? `<button class="btn btn-red btn-sm" data-vjoin="${esc(v.url)}">Entrar a la videollamada</button>` : `<button class="btn btn-line btn-sm" disabled>Entrar a la videollamada</button>`;
+      acts += ` <label class="fa-inline">Otra hora <input type="datetime-local" data-vwhen="${esc(v.id)}"></label><button class="btn btn-line btn-sm" data-vprop="${esc(v.id)}">Proponer</button> <button class="btn btn-line btn-sm fa-danger" data-vcan="${esc(v.id)}">Cancelar</button>`;
+      return `<div class="fa-q"><b>${esc(v.nombre || v.email)} · ${esc(fwhen(v.scheduledAt))}</b> <span class="fa-pill ${s[1]}">${esc(s[0])}</span>${v.note ? `<p>${esc(v.note)}</p>` : ""}<div class="fa-row" style="flex-wrap:wrap;gap:8px">${acts}</div></div>`;
+    }).join("");
+  }
+  function bindVids() {
+    const run = async (action, body) => { try { await A.api("/api/admin?action=" + action, { body }); await loadVids(); render(); } catch (ex) { alert(ex.message); } };
+    root.querySelectorAll("[data-vconf]").forEach((b) => (b.onclick = () => run("video-confirm", { id: b.getAttribute("data-vconf") })));
+    root.querySelectorAll("[data-vcan]").forEach((b) => (b.onclick = () => { if (confirm("¿Cancelar esta videollamada?")) run("video-cancel", { id: b.getAttribute("data-vcan") }); }));
+    root.querySelectorAll("[data-vprop]").forEach((b) => (b.onclick = () => {
+      const id = b.getAttribute("data-vprop"), inp = root.querySelector(`[data-vwhen="${id}"]`);
+      if (!inp || !inp.value) return alert("Elige la nueva fecha y hora.");
+      run("video-propose", { id, when: new Date(inp.value).toISOString() });
+    }));
+    root.querySelectorAll("[data-vjoin]").forEach((b) => (b.onclick = () => window.FAJitsi.open(b.getAttribute("data-vjoin"))));
+  }
+  async function loadVids() { try { vids = (await A.api("/api/admin?action=videos")).items || []; } catch (e) { vids = []; } }
 
   function threadView() {
     const s = thread.subscriber, qd = thread.quota;
@@ -101,7 +129,7 @@
     render();
   }
 
-  async function refreshList() { list = await A.api("/api/admin?action=list"); render(); }
+  async function refreshList() { list = await A.api("/api/admin?action=list"); await loadVids(); render(); }
   function stop() { if (timer) clearInterval(timer); timer = null; }
 
   async function load() {
@@ -109,6 +137,7 @@
     try {
       if (!(await A.session())) return loginView();
       list = await A.api("/api/admin?action=list");
+      await loadVids();
       render();
       stop();
       timer = setInterval(() => { if (document.visibilityState === "visible" && !($("#faReplyMsg") && $("#faReplyMsg").value) && document.activeElement !== $("#faEqQ")) refreshList().catch(() => {}); }, 30000);

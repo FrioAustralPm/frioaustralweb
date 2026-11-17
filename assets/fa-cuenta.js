@@ -163,17 +163,25 @@
         <button data-tab="chat" class="${tab === "chat" ? "on" : ""}">Chat con el equipo</button>
         <button data-tab="pagos" class="${tab === "pagos" ? "on" : ""}">Pagos</button>
         ${st.features.community || st.features.ver_preguntas_otros ? `<button data-tab="base" class="${tab === "base" ? "on" : ""}">Preguntas de otros usuarios</button>` : ""}
+        ${st.features.videollamada ? `<button data-tab="video" class="${tab === "video" ? "on" : ""}">Videollamadas</button>` : ""}
         ${st.features.ebooks_gratis ? `<button data-tab="ebooks" class="${tab === "ebooks" ? "on" : ""}">Ebooks</button>` : ""}
         ${st.features.biblioteca ? `<button data-tab="biblioteca" class="${tab === "biblioteca" ? "on" : ""}">Biblioteca</button>` : ""}
       </div>
       <div class="fa-pane glass" data-pane="chat" ${tab === "chat" ? "" : "hidden"}>${chatPane(st)}</div>
       <div class="fa-pane glass" data-pane="pagos" ${tab === "pagos" ? "" : "hidden"}>${paysPane(st)}</div>
       ${st.features.community || st.features.ver_preguntas_otros ? `<div class="fa-pane glass" data-pane="base" ${tab === "base" ? "" : "hidden"}><form id="faBaseForm" class="fa-input"><input name="q" placeholder="Busca por síntoma, vehículo, gas…"><button class="btn btn-line btn-sm">Buscar</button></form><div id="faBase"><p class="fa-sub-note">Consulta, solo lectura, las preguntas ya respondidas a otros usuarios. No aparecen nombres ni correos.</p></div></div>` : ""}
+      ${st.features.videollamada ? `<div class="fa-pane glass" data-pane="video" ${tab === "video" ? "" : "hidden"}>
+        <form id="faVidForm" class="fa-vid-form"><label>Día y hora que propones<input type="datetime-local" name="when" required></label><label>Tema (opcional)<input name="note" maxlength="500" placeholder="Ej.: diagnóstico de compresor en Hilux 2018"></label><button class="btn btn-red btn-sm">Solicitar videollamada</button></form>
+        <p class="fa-flow-err" id="faVidErr" role="alert" hidden></p>
+        <div id="faVids"><p class="fa-sub-note">Cargando…</p></div></div>` : ""}
       ${st.features.ebooks_gratis ? `<div class="fa-pane glass" data-pane="ebooks" ${tab === "ebooks" ? "" : "hidden"}><div class="fa-soon"><b>Próximamente</b><p class="fa-sub-note">El acceso gratuito a los ebooks del Plan Profesional se publicará aquí. Todavía no hay títulos disponibles.</p></div></div>` : ""}
       ${st.features.biblioteca ? `<div class="fa-pane glass" data-pane="biblioteca" ${tab === "biblioteca" ? "" : "hidden"}><div class="fa-soon"><b>Próximamente</b><p class="fa-sub-note">La biblioteca de conocimientos para estudiar y profundizar se publicará aquí.</p></div></div>` : ""}`;
     const chat = $("#faChat"); if (chat) chat.scrollTop = chat.scrollHeight;
     $("#faOut").onclick = async () => { await A.signOut(); state = null; loginView(); };
-    root.querySelectorAll("[data-tab]").forEach((b) => (b.onclick = () => { tab = b.getAttribute("data-tab"); render(); if (tab === "base") search(""); }));
+    root.querySelectorAll("[data-tab]").forEach((b) => (b.onclick = () => { tab = b.getAttribute("data-tab"); render(); if (tab === "base") search(""); if (tab === "video") loadVideos(); }));
+    const vf = $("#faVidForm");
+    if (vf) vf.onsubmit = requestVideo;
+    if (tab === "video") loadVideos();
     root.querySelectorAll("[data-act]").forEach((b) => (b.onclick = () => act(b.getAttribute("data-act"), b)));
     const mf = $("#faMsgForm");
     if (mf) mf.onsubmit = sendMsg;
@@ -191,6 +199,44 @@
       box.innerHTML = out.items.map((i) => `<div class="fa-q"><b>${esc(i.pregunta)}</b><p>${esc(i.respuesta)}</p><small class="fa-sub-note">${fdate(i.fecha)}</small></div>`).join("") || `<p class="fa-sub-note">Sin resultados.</p>`;
     } catch (e) { box.innerHTML = `<p class="fa-flow-err">${esc(e.message)}</p>`; }
   }
+
+  /* ---------- Videollamadas (Jitsi Meet) ---------- */
+  const VST = { solicitada: ["Esperando confirmación del equipo", "fa-warn"], propuesta: ["El equipo propone otra hora", "fa-warn"], confirmada: ["Confirmada", "fa-ok"], cancelada: ["Cancelada", "fa-bad"] };
+  const fwhen = (i) => new Date(i).toLocaleString("es-CL", { timeZone: "America/Santiago", weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
+  function videoRow(v) {
+    const s = VST[v.status] || [v.status, ""];
+    let acts = "";
+    if (v.status === "confirmada") acts = v.canJoin ? `<button class="btn btn-red btn-sm" data-vjoin="${esc(v.url)}">Entrar a la videollamada</button>` : `<button class="btn btn-line btn-sm" disabled title="Se habilita 10 minutos antes">Entrar a la videollamada</button><small class="fa-sub-note">Se habilita desde ${fwhen(v.joinFrom)}.</small>`;
+    if (v.status === "propuesta") acts = `<button class="btn btn-red btn-sm" data-vacc="${esc(v.id)}">Aceptar esta hora</button>`;
+    if (v.status !== "cancelada") acts += ` <button class="btn btn-line btn-sm fa-danger" data-vcan="${esc(v.id)}">Cancelar</button>`;
+    return `<div class="fa-q fa-vid"><b>${esc(fwhen(v.scheduledAt))}</b> <span class="fa-pill ${s[1]}">${esc(s[0])}</span>${v.note ? `<p>${esc(v.note)}</p>` : ""}<div class="fa-row">${acts}</div></div>`;
+  }
+  async function loadVideos() {
+    const box = $("#faVids"); if (!box) return;
+    try {
+      const out = await A.api("/api/account?action=videos");
+      box.innerHTML = out.items.map(videoRow).join("") || `<p class="fa-sub-note">Aún no tienes videollamadas. Propón un día y hora y el equipo te confirma.</p>`;
+      box.querySelectorAll("[data-vjoin]").forEach((b) => (b.onclick = () => openJitsi(b.getAttribute("data-vjoin"))));
+      box.querySelectorAll("[data-vacc]").forEach((b) => (b.onclick = () => videoAct("video-accept", b.getAttribute("data-vacc"))));
+      box.querySelectorAll("[data-vcan]").forEach((b) => (b.onclick = () => { if (confirm("¿Cancelar esta videollamada?")) videoAct("video-cancel", b.getAttribute("data-vcan")); }));
+    } catch (e) { box.innerHTML = `<p class="fa-flow-err">${esc(e.message)}</p>`; }
+  }
+  async function videoAct(action, id) {
+    try { await A.api("/api/account?action=" + action, { body: { id } }); } catch (e) { alert(e.message); }
+    loadVideos();
+  }
+  async function requestVideo(e) {
+    e.preventDefault();
+    const f = e.target, err = $("#faVidErr"), d = new FormData(f), btn = $("button", f);
+    err.hidden = true; btn.disabled = true;
+    try {
+      const when = new Date(String(d.get("when"))).toISOString();
+      await A.api("/api/account?action=video-request", { body: { when, note: d.get("note") } });
+      f.reset(); loadVideos();
+    } catch (ex) { err.hidden = false; err.textContent = ex.message === "Invalid time value" ? "Elige una fecha y hora." : ex.message; }
+    btn.disabled = false;
+  }
+  function openJitsi(url) { (window.FAJitsi || { open: (u) => window.open(u, "_blank", "noopener") }).open(url); }
 
   async function sendMsg(e) {
     e.preventDefault();
@@ -216,9 +262,7 @@
         await A.api("/api/account?action=change-plan", { body: { plan: np } });
         await load(true);
       } else if (kind === "video") {
-        tab = "chat"; render();
-        const ta = $("#faMsg");
-        if (ta && !ta.disabled) { ta.value = "Quiero agendar una videollamada de asesoría. Propongo este día y hora: "; ta.focus(); }
+        tab = "video"; render(); loadVideos();
       } else if (kind === "card") {
         btn.disabled = true;
         const out = await A.api("/api/account?action=change-card", { body: {} });
