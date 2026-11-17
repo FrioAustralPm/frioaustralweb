@@ -58,23 +58,6 @@ async function me(req, res, user) {
   });
 }
 
-async function createSubscriptionFor(sub, planKey) {
-  const plan = flow.getPlan(planKey);
-  await flow.ensureFlowPlan(planKey);
-  const created = await flow.createSubscription({ planId: plan.flowPlanId, customerId: sub.flow_customer_id });
-  let updated = await S.updateSubscriber(sub.user_id, {
-    flow_subscription_id: created.subscriptionId,
-    plan: planKey,
-    pending_plan: null,
-    flow_plan_id: plan.flowPlanId,
-    status: "pago_pendiente",
-    cancel_at_period_end: false,
-    synced_at: null,
-  });
-  try { updated = await S.syncFromFlow(updated); } catch (e) { console.error("[sync after create]", e.code); }
-  return updated;
-}
-
 async function ensureCustomer(sub) {
   if (sub.flow_customer_id) return sub;
   const c = await flow.createCustomer({ name: sub.nombre || sub.email, email: sub.email, externalId: sub.user_id });
@@ -95,7 +78,7 @@ async function start(req, res, user) {
   }
   sub = await ensureCustomer(sub);
   if (sub.card_last4) {
-    await createSubscriptionFor(sub, planKey);
+    await S.createSubscriptionFor(sub, planKey);
     return send(res, 200, { ok: true, redirect: "mi-cuenta.html?alta=ok" });
   }
   await S.updateSubscriber(sub.user_id, { pending_plan: planKey, status: "pendiente_tarjeta" });

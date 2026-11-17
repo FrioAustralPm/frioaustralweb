@@ -53,7 +53,13 @@ global.fetch = async (url, init = {}) => {
     if (method === "PATCH") {
       const patch = JSON.parse(init.body);
       let out = rows;
-      for (const [k, v] of u.searchParams) { if (v.startsWith("eq.")) out = out.filter((r) => String(r[k]) === v.slice(3)); }
+      for (const [k, v] of u.searchParams) {
+        if (v.startsWith("eq.")) out = out.filter((r) => String(r[k]) === v.slice(3));
+        if (v.startsWith("in.(")) {
+          const list = v.slice(4, -1).split(",");
+          out = out.filter((r) => list.includes(String(r[k])));
+        }
+      }
       out.forEach((r) => Object.assign(r, patch));
       return json(200, out);
     }

@@ -48,6 +48,79 @@ async function updateSubscriber(userId, patch) {
   return (rows && rows[0]) || null;
 }
 
+/** Estados desde los que se puede iniciar un alta. `pendiente` queda afuera a propósito: es el candado. */
+const CLAIMABLE_STATUSES = ["sin_suscripcion", "pendiente_tarjeta", "cancelada"];
+
+/**
+ * Compare-and-swap: una sola petición puede pasar a `pendiente` y llamar a Flow.
+ * El segundo PATCH concurrente no coincide (status ya no está en CLAIMABLE) y no crea otra suscripción.
+ */
+async function claimSubscriptionCreate(userId, planKey) {
+  const rows = await rest(
+    `subscribers?user_id=eq.${enc(userId)}&status=in.(${CLAIMABLE_STATUSES.join(",")})`,
+    {
+      method: "PATCH",
+      prefer: "return=representation",
+      body: {
+        pending_plan: planKey,
+        status: "pendiente",
+        updated_at: new Date().toISOString(),
+      },
+    }
+  );
+  return (rows && rows[0]) || null;
+}
+
+/**
+ * Crea la suscripción en Flow como máximo una vez por cliente.
+ * Si otra petición ya ganó el alta, no llama a /subscription/create (evita un segundo cobro mensual).
+ */
+async function createSubscriptionFor(sub, planKey) {
+  const plan = flow.getPlan(planKey);
+  if (!plan) throw new HttpError(400, "Plan no válido.", "bad_plan");
+  if (!sub || !sub.flow_customer_id) throw new HttpError(400, "Falta el cliente de Flow.", "no_customer");
+  if (sub.flow_subscription_id && sub.status !== "cancelada") {
+    throw new HttpError(409, "Ya tienes una suscripción. Para cambiar de plan usa el panel Mi cuenta.", "already_subscribed");
+  }
+
+  const claimed = await claimSubscriptionCreate(sub.user_id, planKey);
+  if (!claimed) {
+    const fresh = await getSubscriber(sub.user_id);
+    if (fresh && fresh.flow_subscription_id && fresh.status !== "cancelada") return fresh;
+    throw new HttpError(409, "Ya hay un alta en curso. Espera un momento y recarga Mi cuenta.", "alta_en_curso");
+  }
+
+  await flow.ensureFlowPlan(planKey);
+  try {
+    const created = await flow.createSubscription({
+      planId: plan.flowPlanId,
+      customerId: claimed.flow_customer_id || sub.flow_customer_id,
+    });
+    let updated = await updateSubscriber(sub.user_id, {
+      flow_subscription_id: created.subscriptionId,
+      plan: planKey,
+      pending_plan: null,
+      flow_plan_id: plan.flowPlanId,
+      status: "pago_pendiente",
+      cancel_at_period_end: false,
+      synced_at: null,
+    });
+    try {
+      updated = await syncFromFlow(updated);
+    } catch (e) {
+      console.error("[sync after create]", e.code);
+    }
+    return updated;
+  } catch (err) {
+    const rollbackStatus = sub.status === "cancelada" ? "cancelada" : "pendiente_tarjeta";
+    await updateSubscriber(sub.user_id, {
+      status: rollbackStatus,
+      pending_plan: planKey,
+    }).catch(() => {});
+    throw err;
+  }
+}
+
 /** Trae la suscripción desde Flow y la guarda (estado, período, importes). */
 async function syncFromFlow(sub) {
   if (!sub || !sub.flow_subscription_id) return sub;
@@ -157,6 +230,8 @@ module.exports = {
   getSubscriber,
   ensureSubscriber,
   updateSubscriber,
+  claimSubscriptionCreate,
+  createSubscriptionFor,
   syncFromFlow,
   maybeSync,
   canAsk,
@@ -164,4 +239,5 @@ module.exports = {
   cleanMessage,
   publicSub,
   periodWindow,
+  CLAIMABLE_STATUSES,
 };
