@@ -88,7 +88,7 @@ test("sin sesión => 401", async () => {
   assert.equal(r.status, 401);
 });
 
-test("plan Consulta: 3 preguntas por período y la cuarta se bloquea", async () => {
+test("Plan Aprendiz: 3 preguntas por período y la cuarta se bloquea", async () => {
   for (let i = 1; i <= 3; i++) {
     const r = await call(account, { method: "POST", url: "/api/account?action=message", body: { body: `Pregunta ${i}` } });
     assert.equal(r.status, 201, JSON.stringify(r.body));
@@ -100,7 +100,7 @@ test("plan Consulta: 3 preguntas por período y la cuarta se bloquea", async () 
   assert.equal(db.messages.length, 3);
 });
 
-test("plan Ilimitado no tiene tope", async () => {
+test("Plan Técnico no tiene tope", async () => {
   db.subscribers[0].plan = "pro";
   for (let i = 0; i < 6; i++) {
     const r = await call(account, { method: "POST", url: "/api/account?action=message", body: { body: `P${i}` } });
@@ -119,7 +119,7 @@ test("suscripción morosa no puede preguntar", async () => {
 test("me devuelve plan, cupo, chat y pagos", async () => {
   const r = await call(account, { url: "/api/account?action=me" });
   assert.equal(r.status, 200);
-  assert.equal(r.body.subscriber.planName, "Consulta");
+  assert.equal(r.body.subscriber.planName, "Plan Aprendiz");
   assert.equal(r.body.subscriber.amount, 5000);
   assert.equal(r.body.quota.limit, 3);
   assert.ok(Array.isArray(r.body.messages));
@@ -140,4 +140,43 @@ test("los errores no filtran detalles internos", async () => {
   const r = await call(account, { url: "/api/account?action=nada" });
   assert.equal(r.status, 404);
   assert.ok(!JSON.stringify(r.body).includes("service"));
+});
+
+test("el historial de otros usuarios es solo del Plan Profesional y sale sin datos personales", async () => {
+  let r = await call(account, { url: "/api/account?action=community" });
+  assert.equal(r.status, 403);
+  assert.equal(r.body.code, "not_premium");
+
+  db.subscribers[0].plan = "pro";
+  r = await call(account, { url: "/api/account?action=community" });
+  assert.equal(r.status, 403);
+
+  db.subscribers[0].plan = "premium";
+  db.messages.push(
+    { id: 1, user_id: "22222222-2222-2222-2222-222222222222", sender: "cliente", body: "¿Cuánto gas lleva una Hilux?", created_at: "2026-11-01T00:00:00.000Z" },
+    { id: 2, user_id: "22222222-2222-2222-2222-222222222222", sender: "equipo", body: "Revisa la etiqueta del equipo.", created_at: "2026-11-01T01:00:00.000Z" },
+  );
+  r = await call(account, { url: "/api/account?action=community" });
+  assert.equal(r.status, 200, JSON.stringify(r.body));
+  assert.equal(r.body.items.length, 1);
+  assert.deepEqual(Object.keys(r.body.items[0]).sort(), ["fecha", "pregunta", "respuesta"]);
+  assert.equal(r.body.items[0].pregunta, "¿Cuánto gas lleva una Hilux?");
+  const blob = JSON.stringify(r.body);
+  assert.equal(blob.includes("22222222"), false);
+  assert.equal(blob.includes("user_id"), false);
+  assert.equal(blob.includes("@"), false);
+  assert.equal(r.body.features, undefined);
+});
+
+test("me del Plan Profesional expone los beneficios extra", async () => {
+  db.subscribers[0].plan = "premium";
+  const r = await call(account, { url: "/api/account?action=me" });
+  assert.equal(r.status, 200);
+  assert.equal(r.body.subscriber.planName, "Plan Profesional");
+  assert.equal(r.body.subscriber.amount, 20000);
+  assert.equal(r.body.features.ver_preguntas_otros, true);
+  assert.equal(r.body.features.whatsapp, true);
+  assert.equal(r.body.features.videollamada, true);
+  assert.equal(r.body.features.ebooks_gratis, true);
+  assert.equal(r.body.features.biblioteca, true);
 });

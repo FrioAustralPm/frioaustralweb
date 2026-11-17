@@ -103,7 +103,7 @@
     const others = Object.keys(PLANS).filter((k) => k !== s.plan);
     const canManage = s.status !== "cancelada";
     return `<div class="fa-card glass fa-plancard">
-      <div class="fa-plan-top"><div><span class="mono fa-ej">Tu plan</span><h3>${esc(s.planName || "")} <small>${clp(s.amount)} / mes</small></h3></div>
+      <div class="fa-plan-top"><div><span class="mono fa-ej">Tu plan${(PLANS[s.plan] && PLANS[s.plan].label) ? " · " + esc(PLANS[s.plan].label) : ""}</span><h3>${esc(s.planName || "")} <small>${clp(s.amount)} CLP / mes</small></h3></div>
       <span class="fa-pill ${st[1]}">${esc(st[0])}</span></div>
       <dl class="fa-dl">
         <div><dt>${s.cancelAtPeriodEnd ? "Acceso hasta" : "Próximo cobro"}</dt><dd>${s.cancelAtPeriodEnd ? fdate(s.periodEnd) : s.nextChargeAt ? fdate(s.nextChargeAt) : "—"}</dd></div>
@@ -127,7 +127,7 @@
       <span class="mono fa-ej">Preguntas de este período</span>
       <b>${q.unlimited ? "Ilimitadas" : `${q.left} de ${q.limit} disponibles`}</b>
       ${q.unlimited ? `<small>Llevas ${q.used} en este período.</small>` : `<div class="fa-bar" role="progressbar" aria-valuemin="0" aria-valuemax="${q.limit}" aria-valuenow="${q.used}"><i style="width:${pct}%"></i></div><small>Usaste ${q.used}. Se renuevan con cada cobro mensual${q.periodTo ? " (" + fdate(q.periodTo) + ")" : ""}.</small>`}
-      ${st.features.calls ? `<a class="btn btn-wa btn-sm" href="${esc(C.CALLS_WHATSAPP_URL || "#")}" target="_blank" rel="noopener">Agendar llamada o videollamada</a>` : ""}
+      ${st.features.whatsapp || st.features.videollamada || st.features.calls ? `<a class="btn btn-wa btn-sm" href="${esc(C.CALLS_WHATSAPP_URL || "#")}" target="_blank" rel="noopener">${st.features.videollamada ? "Consultar por WhatsApp o agendar videollamada" : "Consultar por WhatsApp"}</a>` : ""}
     </div>`;
   }
 
@@ -137,7 +137,7 @@
     let block = "";
     if (!st.subscriber.hasSubscription) block = `Necesitas un plan activo para preguntar. <a class="btn btn-red btn-sm" href="planes.html">Ver planes</a>`;
     else if (!st.canAsk) block = st.subscriber.status === "pago_pendiente" ? "Estamos esperando la confirmación del pago de Flow. Actualiza en unos minutos." : "Tu suscripción no está activa. Regulariza el pago o vuelve a suscribirte para seguir preguntando.";
-    else if (!st.quota.unlimited && st.quota.left <= 0) block = `Usaste tus ${st.quota.limit} preguntas de este período. Puedes cambiarte al plan Ilimitado desde arriba.`;
+    else if (!st.quota.unlimited && st.quota.left <= 0) block = `Usaste tus ${st.quota.limit} preguntas de este período. Puedes cambiarte al Plan Técnico desde arriba.`;
     return `<div class="fa-chat" id="faChat" aria-live="polite">${msgs}</div>
       ${block ? `<div class="fa-block">${block}</div>` : ""}
       <form class="fa-input" id="faMsgForm"><textarea id="faMsg" rows="2" maxlength="4000" placeholder="Escribe tu pregunta…" ${block ? "disabled" : ""} required></textarea><button class="btn btn-red btn-sm" ${block ? "disabled" : ""}>Enviar</button></form>
@@ -162,11 +162,15 @@
       <div class="fa-tabs" role="tablist">
         <button data-tab="chat" class="${tab === "chat" ? "on" : ""}">Chat con el equipo</button>
         <button data-tab="pagos" class="${tab === "pagos" ? "on" : ""}">Pagos</button>
-        ${st.features.community ? `<button data-tab="base" class="${tab === "base" ? "on" : ""}">Base de preguntas</button>` : ""}
+        ${st.features.community || st.features.ver_preguntas_otros ? `<button data-tab="base" class="${tab === "base" ? "on" : ""}">Preguntas de otros usuarios</button>` : ""}
+        ${st.features.ebooks_gratis ? `<button data-tab="ebooks" class="${tab === "ebooks" ? "on" : ""}">Ebooks</button>` : ""}
+        ${st.features.biblioteca ? `<button data-tab="biblioteca" class="${tab === "biblioteca" ? "on" : ""}">Biblioteca</button>` : ""}
       </div>
       <div class="fa-pane glass" data-pane="chat" ${tab === "chat" ? "" : "hidden"}>${chatPane(st)}</div>
       <div class="fa-pane glass" data-pane="pagos" ${tab === "pagos" ? "" : "hidden"}>${paysPane(st)}</div>
-      ${st.features.community ? `<div class="fa-pane glass" data-pane="base" ${tab === "base" ? "" : "hidden"}><form id="faBaseForm" class="fa-input"><input name="q" placeholder="Busca por síntoma, vehículo, gas…"><button class="btn btn-line btn-sm">Buscar</button></form><div id="faBase"><p class="fa-sub-note">Busca entre las preguntas ya respondidas por el equipo.</p></div></div>` : ""}`;
+      ${st.features.community || st.features.ver_preguntas_otros ? `<div class="fa-pane glass" data-pane="base" ${tab === "base" ? "" : "hidden"}><form id="faBaseForm" class="fa-input"><input name="q" placeholder="Busca por síntoma, vehículo, gas…"><button class="btn btn-line btn-sm">Buscar</button></form><div id="faBase"><p class="fa-sub-note">Consulta, solo lectura, las preguntas ya respondidas a otros usuarios. No aparecen nombres ni correos.</p></div></div>` : ""}
+      ${st.features.ebooks_gratis ? `<div class="fa-pane glass" data-pane="ebooks" ${tab === "ebooks" ? "" : "hidden"}><div class="fa-soon"><b>Próximamente</b><p class="fa-sub-note">El acceso gratuito a los ebooks del Plan Profesional se publicará aquí. Todavía no hay títulos disponibles.</p></div></div>` : ""}
+      ${st.features.biblioteca ? `<div class="fa-pane glass" data-pane="biblioteca" ${tab === "biblioteca" ? "" : "hidden"}><div class="fa-soon"><b>Próximamente</b><p class="fa-sub-note">La biblioteca de conocimientos para estudiar y profundizar se publicará aquí.</p></div></div>` : ""}`;
     const chat = $("#faChat"); if (chat) chat.scrollTop = chat.scrollHeight;
     $("#faOut").onclick = async () => { await A.signOut(); state = null; loginView(); };
     root.querySelectorAll("[data-tab]").forEach((b) => (b.onclick = () => { tab = b.getAttribute("data-tab"); render(); if (tab === "base") search(""); }));

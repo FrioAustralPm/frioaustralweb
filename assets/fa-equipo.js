@@ -1,4 +1,4 @@
-/* Panel del equipo (Guillermo): suscriptores, chats sin responder, responder, pagos y estado en Flow. */
+/* Panel del equipo: suscriptores, chats sin responder, responder, pagos y estado en Flow. */
 (function () {
   const A = window.FAAuth, C = window.FA_CONFIG || {};
   const { esc, clp, fdate } = A;

@@ -7,7 +7,7 @@
  *   POST /api/account?action=cancel                                     cancela al final del período
  *   POST /api/account?action=change-plan   {plan}                       cambia de plan
  *   POST /api/account?action=change-card                                registrar otra tarjeta en Flow
- *   GET  /api/account?action=community&q=                               base de preguntas (Taller Pro)
+ *   GET  /api/account?action=community&q=                               preguntas de otros usuarios (Plan Profesional, anonimizadas)
  */
 const flow = require("./_lib/flow");
 const { getUserFromToken, rest, enc, adminCreateUser, HttpError } = require("./_lib/supa");
@@ -51,7 +51,15 @@ async function me(req, res, user) {
     subscriber: S.publicSub(sub),
     canAsk: S.canAsk(sub),
     quota,
-    features: plan ? { calls: !!plan.calls, community: !!plan.community } : { calls: false, community: false },
+    features: plan ? {
+      calls: !!plan.calls,
+      community: !!plan.community,
+      whatsapp: !!plan.whatsapp,
+      videollamada: !!plan.videollamada,
+      ver_preguntas_otros: !!plan.ver_preguntas_otros,
+      ebooks_gratis: !!plan.ebooks_gratis,
+      biblioteca: !!plan.biblioteca,
+    } : { calls: false, community: false, whatsapp: false, videollamada: false, ver_preguntas_otros: false, ebooks_gratis: false, biblioteca: false },
     messages: (messages || []).reverse(),
     payments: payments || [],
     flowEnv: flow.getFlowConfig().env,
@@ -95,7 +103,7 @@ async function message(req, res, user) {
   if (!S.canAsk(sub)) throw new HttpError(403, "Tu suscripción no está activa. Renueva o regulariza el pago para seguir preguntando.", "inactive");
   const q = await S.quotaFor(sub);
   if (!q.unlimited && q.left <= 0) {
-    throw new HttpError(403, `Usaste tus ${q.limit} preguntas de este período. Puedes cambiarte al plan Ilimitado.`, "quota");
+    throw new HttpError(403, `Usaste tus ${q.limit} preguntas de este período. Puedes cambiarte al Plan Técnico.`, "quota");
   }
   const rows = await rest("messages", {
     method: "POST", prefer: "return=representation",
@@ -149,7 +157,7 @@ async function changeCard(req, res, user) {
 async function community(req, res, user) {
   const sub = await S.maybeSync(await S.getSubscriber(user.id));
   const plan = sub && sub.plan ? flow.getPlan(sub.plan) : null;
-  if (!plan || !plan.community || !S.canAsk(sub)) throw new HttpError(403, "La base de preguntas es parte del plan Taller Pro.", "not_premium");
+  if (!plan || !(plan.community || plan.ver_preguntas_otros) || !S.canAsk(sub)) throw new HttpError(403, "El historial de preguntas de otros usuarios es parte del Plan Profesional.", "not_premium");
   const q = String(queryOf(req).q || "").trim().toLowerCase().slice(0, 80);
   const rows = await rest("messages?select=user_id,sender,body,created_at&order=user_id.asc,created_at.asc&limit=3000");
   const items = [];
@@ -160,7 +168,7 @@ async function community(req, res, user) {
     const nextQ = rows.slice(i + 1).find((x) => x.user_id === m.user_id && x.sender === "cliente");
     if (!reply || (nextQ && new Date(nextQ.created_at) < new Date(reply.created_at))) continue;
     if (q && !(m.body.toLowerCase().includes(q) || reply.body.toLowerCase().includes(q))) continue;
-    items.push({ pregunta: m.body, respuesta: reply.body, fecha: reply.created_at });
+    items.push({ pregunta: String(m.body || ""), respuesta: String(reply.body || ""), fecha: reply.created_at });
   }
   items.sort((a, b) => String(b.fecha).localeCompare(String(a.fecha)));
   send(res, 200, { ok: true, items: items.slice(0, 60) });

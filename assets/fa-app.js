@@ -7,7 +7,7 @@ const seed=()=>({subs:[
  {id:'s3',nombre:'Camila Ruiz',email:'camila@ejemplo.cl',plan:'basico',estado:'vencida',usadas:3,msgs:[{de:'u',t:'¿Sirve el R134a en un auto con R1234yf?',f:now()},{de:'a',t:'No, no se deben mezclar ni reemplazar.',f:now()}]}],me:null});
 const db=()=>{try{return JSON.parse(localStorage.getItem(K))||seed()}catch(e){return seed()}}, save=d=>localStorage.setItem(K,JSON.stringify(d));
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const LIM={basico:3,pro:Infinity,premium:Infinity}, PN={basico:'Consulta · $5.000',pro:'Ilimitado · $10.000',premium:'Taller Pro · $20.000'};
+const LIM={basico:3,pro:Infinity,premium:Infinity}, PN={basico:'Plan Aprendiz · $5.000',pro:'Plan Técnico · $10.000',premium:'Plan Profesional · $20.000'};
 const $=s=>document.querySelector(s);
 const bubbles=(m,who)=>m.map(x=>`<div class="fa-m ${x.de===who?'fa-u':'fa-a'}">${esc(x.t)}<small>${x.de==='u'?'Suscriptor':'Frío Austral'} · ${new Date(x.f).toLocaleString('es-CL')}</small></div>`).join('')||'<p class="fa-ej mono">Sin mensajes todavía.</p>';
 const page=document.body.dataset.fa;
