@@ -1,5 +1,5 @@
 -- Frío Austral: videollamadas de asesoría (solo Plan Premium).
--- Proyecto Supabase "Frio Austral" (akanruuybegwxfjxdpub). Migración aditiva.
+-- Proyecto Supabase "Frio Austral" (kgxwjywupnnvceyziymj). Migración aditiva.
 -- Nadie lee ni escribe desde el navegador: todo pasa por /api con la service role,
 -- que verifica el plan y entrega la sala solo al dueño de la solicitud y al equipo.
 
