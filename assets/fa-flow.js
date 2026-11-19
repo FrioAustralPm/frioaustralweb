@@ -63,7 +63,7 @@
       fields.querySelectorAll("[data-mode]").forEach((b) => (b.onclick = () => { mode = b.getAttribute("data-mode"); showErr(""); drawFields(); }));
     }
 
-    document.querySelectorAll(".fa-sub").forEach((b) => {
+    document.querySelectorAll("button.fa-sub").forEach((b) => {
       b.onclick = async () => {
         plan = b.getAttribute("data-plan");
         const p = PLANS[plan] || {};

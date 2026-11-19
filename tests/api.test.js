@@ -142,7 +142,7 @@ test("los errores no filtran detalles internos", async () => {
   assert.ok(!JSON.stringify(r.body).includes("service"));
 });
 
-test("el historial de otros usuarios es solo del Plan Profesional y sale sin datos personales", async () => {
+test("el historial de otros usuarios es solo del Plan Premium y sale sin datos personales", async () => {
   let r = await call(account, { url: "/api/account?action=community" });
   assert.equal(r.status, 403);
   assert.equal(r.body.code, "not_premium");
@@ -168,11 +168,11 @@ test("el historial de otros usuarios es solo del Plan Profesional y sale sin dat
   assert.equal(r.body.features, undefined);
 });
 
-test("me del Plan Profesional expone los beneficios extra", async () => {
+test("me del Plan Premium expone los beneficios extra", async () => {
   db.subscribers[0].plan = "premium";
   const r = await call(account, { url: "/api/account?action=me" });
   assert.equal(r.status, 200);
-  assert.equal(r.body.subscriber.planName, "Plan Profesional");
+  assert.equal(r.body.subscriber.planName, "Plan Premium");
   assert.equal(r.body.subscriber.amount, 20000);
   assert.equal(r.body.features.ver_preguntas_otros, true);
   assert.equal(r.body.features.whatsapp, undefined);

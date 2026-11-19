@@ -43,7 +43,7 @@
         <div class="fa-card glass"><span class="fa-ej mono">Activos</span><b>${st.active}</b><small>de ${st.total}</small></div>
         <div class="fa-card glass"><span class="fa-ej mono">Ingreso mensual (activos)</span><b>${clp(st.mrr)}</b></div>
       </div>
-      <section class="fa-card glass fa-eq-vids"><span class="fa-ej mono">Videollamadas (Plan Profesional)</span>
+      <section class="fa-card glass fa-eq-vids"><span class="fa-ej mono">Videollamadas (Plan Premium)</span>
         <p class="fa-sub-note">Se abre en una pestaña nueva, sin límite de tiempo. El primero del equipo en entrar puede tener que iniciar sesión con Google o GitHub para abrir la sala.</p>
         ${vidsView()}</section>
       <div class="fa-eq">

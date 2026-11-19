@@ -175,7 +175,7 @@
         <p class="fa-sub-note">Se abre en una pestaña nueva, sin límite de tiempo. El primero del equipo en entrar puede tener que iniciar sesión con Google o GitHub para abrir la sala.</p>
         <p class="fa-flow-err" id="faVidErr" role="alert" hidden></p>
         <div id="faVids"><p class="fa-sub-note">Cargando…</p></div></div>` : ""}
-      ${st.features.ebooks_gratis ? `<div class="fa-pane glass" data-pane="ebooks" ${tab === "ebooks" ? "" : "hidden"}><div class="fa-soon"><b>Próximamente</b><p class="fa-sub-note">El acceso gratuito a los ebooks del Plan Profesional se publicará aquí. Todavía no hay títulos disponibles.</p></div></div>` : ""}
+      ${st.features.ebooks_gratis ? `<div class="fa-pane glass" data-pane="ebooks" ${tab === "ebooks" ? "" : "hidden"}><div class="fa-soon"><b>Próximamente</b><p class="fa-sub-note">El acceso gratuito a los ebooks del Plan Premium se publicará aquí. Todavía no hay títulos disponibles.</p></div></div>` : ""}
       ${st.features.biblioteca ? `<div class="fa-pane glass" data-pane="biblioteca" ${tab === "biblioteca" ? "" : "hidden"}><div class="fa-soon"><b>Próximamente</b><p class="fa-sub-note">La biblioteca de conocimientos para estudiar y profundizar se publicará aquí.</p></div></div>` : ""}`;
     const chat = $("#faChat"); if (chat) chat.scrollTop = chat.scrollHeight;
     $("#faOut").onclick = async () => { await A.signOut(); state = null; loginView(); };

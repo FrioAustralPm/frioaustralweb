@@ -7,11 +7,11 @@
  *   POST /api/account?action=cancel                                     cancela al final del período
  *   POST /api/account?action=change-plan   {plan}                       cambia de plan
  *   POST /api/account?action=change-card                                registrar otra tarjeta en Flow
- *   GET  /api/account?action=videos                                     videollamadas (Plan Profesional)
+ *   GET  /api/account?action=videos                                     videollamadas (Plan Premium)
  *   POST /api/account?action=video-request {when, note}                 pide una videollamada
  *   POST /api/account?action=video-accept  {id}                         acepta la hora que propuso el equipo
  *   POST /api/account?action=video-cancel  {id}                         cancela la solicitud
- *   GET  /api/account?action=community&q=                               preguntas de otros usuarios (Plan Profesional, anonimizadas)
+ *   GET  /api/account?action=community&q=                               preguntas de otros usuarios (Plan Premium, anonimizadas)
  */
 const flow = require("./_lib/flow");
 const { getUserFromToken, rest, enc, adminCreateUser, HttpError } = require("./_lib/supa");
@@ -161,7 +161,7 @@ async function changeCard(req, res, user) {
 async function community(req, res, user) {
   const sub = await S.maybeSync(await S.getSubscriber(user.id));
   const plan = sub && sub.plan ? flow.getPlan(sub.plan) : null;
-  if (!plan || !(plan.community || plan.ver_preguntas_otros) || !S.canAsk(sub)) throw new HttpError(403, "El historial de preguntas de otros usuarios es parte del Plan Profesional.", "not_premium");
+  if (!plan || !(plan.community || plan.ver_preguntas_otros) || !S.canAsk(sub)) throw new HttpError(403, "El historial de preguntas de otros usuarios es parte del Plan Premium.", "not_premium");
   const q = String(queryOf(req).q || "").trim().toLowerCase().slice(0, 80);
   const rows = await rest("messages?select=user_id,sender,body,created_at&order=user_id.asc,created_at.asc&limit=3000");
   const items = [];
@@ -181,7 +181,7 @@ async function community(req, res, user) {
 async function requireVideoPlan(user) {
   const sub = await S.maybeSync(await S.getSubscriber(user.id));
   const plan = sub && sub.plan ? flow.getPlan(sub.plan) : null;
-  if (!plan || !plan.videollamada || !S.canAsk(sub)) throw new HttpError(403, "Las videollamadas de asesoría son parte del Plan Profesional.", "not_premium");
+  if (!plan || !plan.videollamada || !S.canAsk(sub)) throw new HttpError(403, "Las videollamadas de asesoría son parte del Plan Premium.", "not_premium");
   return sub;
 }
 

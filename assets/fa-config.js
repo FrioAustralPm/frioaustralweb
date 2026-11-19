@@ -10,9 +10,9 @@
    genera su propio plan en Flow (id "fa-<plan>-<monto>"). Al cambiar un precio,
    los nuevos suscriptores toman el nuevo plan y los antiguos siguen con el suyo.
 
-   HOTMART: cada plan tiene hotmartCheckoutUrl listo para pegar el link de cobro
-   (hoy vacío). Todavía no se usa: el alta sigue por Flow hasta que Mathias envíe
-   los links y se haga el cambio. */
+   HOTMART: cada plan tiene su hotmartCheckoutUrl (link de pago de Hotmart). Los botones
+   «Suscribirme para preguntar» de planes.html y de la portada lo abren en una pestaña
+   nueva. El alta con Flow (fa-flow.js, Mi cuenta) queda en el código sin botón público. */
 (function (root) {
   function withFeatures(p) {
     const videollamada = !!p.videollamada;
@@ -42,7 +42,7 @@
     /* Suscripción mensual para preguntarle al equipo. Cobro automático cada mes
        con Flow (tarjeta registrada) hasta que el cliente cancele.
        questionsPerPeriod: null = ilimitadas.
-       hotmartCheckoutUrl: slot por plan; vacío hasta que lleguen los links. */
+       hotmartCheckoutUrl: link de pago de Hotmart de cada plan. */
     PLANS: {
       basico: withFeatures({
         name: "Plan Aprendiz",
@@ -55,7 +55,7 @@
           "Acceso a la plataforma digital.",
           "Resolución de dudas técnicas.",
         ],
-        hotmartCheckoutUrl: "",
+        hotmartCheckoutUrl: "https://pay.hotmart.com/D108538114T",
       }),
       pro: withFeatures({
         name: "Plan Técnico",
@@ -68,10 +68,10 @@
           "Acceso a la plataforma digital.",
           "Resolución de consultas técnicas.",
         ],
-        hotmartCheckoutUrl: "",
+        hotmartCheckoutUrl: "https://pay.hotmart.com/F108559411V",
       }),
       premium: withFeatures({
-        name: "Plan Profesional",
+        name: "Plan Premium",
         label: "Premium",
         amount: 20000,
         questionsPerPeriod: null,
@@ -87,7 +87,7 @@
         ver_preguntas_otros: true,
         ebooks_gratis: true,
         biblioteca: true,
-        hotmartCheckoutUrl: "",
+        hotmartCheckoutUrl: "https://pay.hotmart.com/W108559868U",
       }),
     },
 
