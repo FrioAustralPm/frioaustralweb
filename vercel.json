@@ -13,7 +13,7 @@
       ]
     },
     {
-      "source": "/(mi-cuenta|equipo|admin).html",
+      "source": "/(mi-cuenta|equipo|admin|contenido).html",
       "headers": [
         { "key": "Cache-Control", "value": "no-store" },
         { "key": "X-Robots-Tag", "value": "noindex" },

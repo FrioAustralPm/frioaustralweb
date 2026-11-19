@@ -100,6 +100,16 @@
         <div class="fa-row">${s.status === "pendiente_tarjeta" && s.pendingPlan ? `<button class="btn btn-red btn-sm" data-act="retry" data-plan="${esc(s.pendingPlan)}">Registrar tarjeta</button>` : ""}<a class="btn ${s.status === "pendiente_tarjeta" ? "btn-line" : "btn-red"} btn-sm" href="planes.html">Ver planes</a></div>
       </div>`;
     }
+    if (s.manual) {
+      /* Plan asignado por el equipo (compra por Hotmart): sin tarjeta ni cobro automático en este sitio. */
+      return `<div class="fa-card glass fa-plancard">
+        <div class="fa-plan-top"><div><span class="mono fa-ej">Tu plan${(PLANS[s.plan] && PLANS[s.plan].label) ? " · " + esc(PLANS[s.plan].label) : ""}</span><h3>${esc(s.planName || "")}</h3></div>
+        <span class="fa-pill ${st[1]}">${esc(st[0])}</span></div>
+        <dl class="fa-dl"><div><dt>Acceso hasta</dt><dd>${s.periodEnd ? fdate(s.periodEnd) : "—"}</dd></div></dl>
+        <p class="fa-sub-note">${s.status === "cancelada" || (s.periodEnd && new Date(s.periodEnd).getTime() + 86400000 < Date.now()) ? "Tu acceso terminó. Renueva tu plan para volver a preguntar y ver el material." : "Tu plan se paga por Hotmart. Para renovarlo, cambiarlo o cancelarlo escríbele al equipo por el chat."}</p>
+        ${s.status === "cancelada" || (s.periodEnd && new Date(s.periodEnd).getTime() + 86400000 < Date.now()) ? `<div class="fa-row"><a class="btn btn-red btn-sm" href="planes.html">Ver planes</a></div>` : ""}
+      </div>`;
+    }
     const others = Object.keys(PLANS).filter((k) => k !== s.plan);
     const canManage = s.status !== "cancelada";
     return `<div class="fa-card glass fa-plancard">
@@ -164,6 +174,7 @@
         <button data-tab="pagos" class="${tab === "pagos" ? "on" : ""}">Pagos</button>
         ${st.features.community || st.features.ver_preguntas_otros ? `<button data-tab="base" class="${tab === "base" ? "on" : ""}">Preguntas de otros usuarios</button>` : ""}
         ${st.features.videollamada ? `<button data-tab="video" class="${tab === "video" ? "on" : ""}">Videollamadas</button>` : ""}
+        ${st.canAsk ? `<button data-tab="material" class="${tab === "material" ? "on" : ""}">Material</button>` : ""}
         ${st.features.ebooks_gratis ? `<button data-tab="ebooks" class="${tab === "ebooks" ? "on" : ""}">Ebooks</button>` : ""}
         ${st.features.biblioteca ? `<button data-tab="biblioteca" class="${tab === "biblioteca" ? "on" : ""}">Biblioteca</button>` : ""}
       </div>
@@ -175,11 +186,13 @@
         <p class="fa-sub-note">Se abre en una pestaña nueva, sin límite de tiempo. El primero del equipo en entrar puede tener que iniciar sesión con Google o GitHub para abrir la sala.</p>
         <p class="fa-flow-err" id="faVidErr" role="alert" hidden></p>
         <div id="faVids"><p class="fa-sub-note">Cargando…</p></div></div>` : ""}
-      ${st.features.ebooks_gratis ? `<div class="fa-pane glass" data-pane="ebooks" ${tab === "ebooks" ? "" : "hidden"}><div class="fa-soon"><b>Próximamente</b><p class="fa-sub-note">El acceso gratuito a los ebooks del Plan Premium se publicará aquí. Todavía no hay títulos disponibles.</p></div></div>` : ""}
-      ${st.features.biblioteca ? `<div class="fa-pane glass" data-pane="biblioteca" ${tab === "biblioteca" ? "" : "hidden"}><div class="fa-soon"><b>Próximamente</b><p class="fa-sub-note">La biblioteca de conocimientos para estudiar y profundizar se publicará aquí.</p></div></div>` : ""}`;
+      ${st.canAsk ? `<div class="fa-pane glass" data-pane="material" ${tab === "material" ? "" : "hidden"}><div id="faMatAll"><p class="fa-sub-note">Cargando…</p></div></div>` : ""}
+      ${st.features.ebooks_gratis ? `<div class="fa-pane glass" data-pane="ebooks" ${tab === "ebooks" ? "" : "hidden"}><div id="faMatEbooks"><div class="fa-soon"><b>Próximamente</b><p class="fa-sub-note">El acceso gratuito a los ebooks del Plan Premium se publicará aquí. Todavía no hay títulos disponibles.</p></div></div></div>` : ""}
+      ${st.features.biblioteca ? `<div class="fa-pane glass" data-pane="biblioteca" ${tab === "biblioteca" ? "" : "hidden"}><div id="faMatBib"><div class="fa-soon"><b>Próximamente</b><p class="fa-sub-note">La biblioteca de conocimientos para estudiar y profundizar se publicará aquí.</p></div></div></div>` : ""}`;
     const chat = $("#faChat"); if (chat) chat.scrollTop = chat.scrollHeight;
     $("#faOut").onclick = async () => { await A.signOut(); state = null; loginView(); };
     root.querySelectorAll("[data-tab]").forEach((b) => (b.onclick = () => { tab = b.getAttribute("data-tab"); render(); if (tab === "base") search(""); if (tab === "video") loadVideos(); }));
+    if (st.canAsk && ["material", "ebooks", "biblioteca"].includes(tab)) loadMaterials();
     const vf = $("#faVidForm");
     if (vf) vf.onsubmit = requestVideo;
     if (tab === "video") loadVideos();
@@ -190,6 +203,32 @@
     if (ta) ta.onkeydown = (e) => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) mf.requestSubmit(); };
     const bf = $("#faBaseForm");
     if (bf) bf.onsubmit = (e) => { e.preventDefault(); search(new FormData(bf).get("q")); };
+  }
+
+  /* ---------- material de mi plan (bucket privado: la descarga usa una URL firmada de 2 minutos) ---------- */
+  const CAT_LABEL = { ebook: "Ebook", biblioteca: "Biblioteca", guia: "Guía", video: "Video", recurso: "Recurso" };
+  const fsize = (n) => (n == null ? "" : n >= 1048576 ? (n / 1048576).toFixed(1).replace(".", ",") + " MB" : Math.max(1, Math.round(n / 1024)) + " KB");
+  function matList(items, empty) {
+    if (!items.length) return empty;
+    return items.map((m) => `<div class="fa-q fa-mat"><div><b>${esc(m.title)}</b> <span class="fa-pill">${esc(CAT_LABEL[m.category] || m.category)}</span>${m.description ? `<p>${esc(m.description)}</p>` : ""}<small class="fa-sub-note">${esc(m.fileName)}${m.size != null ? " · " + fsize(m.size) : ""}</small></div><button class="btn btn-red btn-sm" data-mat="${esc(m.id)}">Descargar</button></div>`).join("");
+  }
+  async function loadMaterials() {
+    const all = $("#faMatAll"), eb = $("#faMatEbooks"), bi = $("#faMatBib");
+    try {
+      const out = await A.api("/api/account?action=materials");
+      const soon = (t) => `<div class="fa-soon"><b>Próximamente</b><p class="fa-sub-note">${t}</p></div>`;
+      if (all) all.innerHTML = matList(out.items, `<p class="fa-sub-note">Todavía no hay material para tu plan. Cuando el equipo suba ebooks o recursos, aparecen aquí.</p>`);
+      if (eb) eb.innerHTML = matList(out.items.filter((m) => m.category === "ebook"), soon("El acceso gratuito a los ebooks del Plan Premium se publicará aquí. Todavía no hay títulos disponibles."));
+      if (bi) bi.innerHTML = matList(out.items.filter((m) => m.category === "biblioteca"), soon("La biblioteca de conocimientos para estudiar y profundizar se publicará aquí."));
+      root.querySelectorAll("[data-mat]").forEach((b) => (b.onclick = async () => {
+        b.disabled = true;
+        try { const r = await A.api("/api/account?action=material-url", { body: { id: b.getAttribute("data-mat") } }); location.href = r.url; }
+        catch (ex) { alert(ex.message); }
+        b.disabled = false;
+      }));
+    } catch (e) {
+      [all, eb, bi].forEach((n) => { if (n) n.innerHTML = `<p class="fa-flow-err">${esc(e.message)}</p>`; });
+    }
   }
 
   async function search(q) {

@@ -85,3 +85,20 @@ Solo van a git imágenes optimizadas y videos de menos de ~5 MB (ver `.gitignore
 ## Origen
 
 No se modificaron `D:\PROYECTOS\frio-austral\demo-cliente`, `05-premium` ni `05-premium-media-preview`.
+
+## Contenido del sitio (panel del equipo)
+
+`contenido.html` (se entra con la misma cuenta del equipo que `equipo.html`; hay un botón en ese panel) tiene tres pestañas:
+
+- **Material por plan**: se sube un archivo (PDF, EPUB, ZIP, Word, Excel, PowerPoint, texto, imagen o video, hasta 50 MB), se le pone título, categoría (Ebook, Biblioteca, Guía, Video, Recurso) y se elige a qué planes va (uno o varios). Los suscriptores lo ven en **Mi cuenta → Material** (y en Ebooks / Biblioteca del Plan Premium) y lo descargan con un enlace firmado de 2 minutos. Se puede ocultar, editar o eliminar.
+- **Fotos y videos**: cada espacio del catálogo `assets/fa-slots.js` (portadas, secciones, galería del taller, reels, video de bienvenida y video del curso) se puede cambiar subiendo un archivo nuevo. «Volver al original» borra el archivo subido. Si no hay archivo nuevo o no carga, el sitio usa el archivo de siempre (`assets/fa-medios.js`).
+- **Accesos por plan**: la suscripción se paga en Hotmart y este sitio no recibe aviso del pago. Quien compra crea su cuenta con el mismo correo y el equipo le asigna el plan y la fecha hasta la que tiene acceso (normalmente un mes por pago). Quien paga con Flow se actualiza solo y no se puede cambiar a mano.
+
+### Cómo se controla el acceso
+
+- Bucket **`plan-material` privado** (sin URL pública). El navegador nunca recibe la ruta del archivo: `/api/account?action=material-url` comprueba sesión, plan del material y suscripción vigente (estado activa, período no vencido) y recién ahí entrega una URL firmada de 120 segundos.
+- RLS en `plan_materials` y en `storage.objects` (función `fa_has_plan_access`): aunque alguien use la API de Supabase directamente, solo ve lo asignado a su plan vigente. Escribir (subir, editar, borrar) solo lo hace `/api/admin` con la service role, y solo para cuentas del equipo.
+- Bucket **`site-media` público** (son las mismas fotos que ve cualquier visitante); solo el equipo escribe.
+- Subidas: el servidor entrega un token de subida de un solo uso para una ruta concreta; el archivo viaja directo del navegador a Storage (sin pasar por la función de Vercel, que tiene límite de 4,5 MB).
+
+Migraciones (aditivas): `20261119120000_material_planes_y_medios.sql` y `20261119121500_fa_has_plan_access_invoker.sql`.

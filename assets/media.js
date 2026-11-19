@@ -5,7 +5,9 @@ const rm=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const c=navigator.connection||{};const small=matchMedia('(max-width: 879px)').matches||c.saveData===true;
 const q=small?'720':'1080';
 const src=n=>`<source src="${MEDIA_BASE}${n}-${q}.webm" type="video/webm"><source src="${MEDIA_BASE}${n}-${q}.mp4" type="video/mp4">`;
-const fix=v=>{const t=v.querySelector('track');v.insertAdjacentHTML('afterbegin',src(v.dataset.media));if(t)t.src=MEDIA_BASE+v.dataset.media+'.es.vtt'};
+/* video cambiado desde el panel (assets/fa-medios.js): una sola fuente, sin subtítulos del original */
+const ovr=n=>(window.FA_MEDIA_OVERRIDE&&window.FA_MEDIA_OVERRIDE[n])||'';
+const fix=v=>{const o=ovr(v.dataset.media);const t=v.querySelector('track');if(o){if(t)t.remove();const m=/\.webm(\?|$)/i.test(o)?'video/webm':'video/mp4';v.insertAdjacentHTML('afterbegin',`<source src="${o}" type="${m}">`);return}v.insertAdjacentHTML('afterbegin',src(v.dataset.media));if(t)t.src=MEDIA_BASE+v.dataset.media+'.es.vtt'};
 const capsOn=v=>{for(const t of v.textTracks)if(t.kind==='captions')t.mode='showing'};
 /* Hero V1: autoplay muteado + botón "Activar sonido" (reinicia en el frame 0).
    Con sonido activado: fuera de vista => silencio; al volver => sonido. reduced-motion => solo poster, sin botón */
@@ -40,5 +42,7 @@ function taller(){const tv=document.querySelector('video.fa-tvid[data-lazy]');if
  if(!('IntersectionObserver' in window))return go();
  const io=new IntersectionObserver(e=>{if(e[0].isIntersecting){io.disconnect();go()}},{rootMargin:'400px'});io.observe(tv)}
 const run=()=>{later(hero);lazy();taller()};
-document.readyState==='loading'?document.addEventListener('DOMContentLoaded',run):run();
+/* espera (máx. 2,5 s) a saber si hay videos nuevos del panel */
+const boot=()=>Promise.resolve(window.FA_MEDIA_READY).then(run,run);
+document.readyState==='loading'?document.addEventListener('DOMContentLoaded',boot):boot();
 })();

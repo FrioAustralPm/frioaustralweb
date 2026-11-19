@@ -12,11 +12,16 @@
  *   POST /api/account?action=video-accept  {id}                         acepta la hora que propuso el equipo
  *   POST /api/account?action=video-cancel  {id}                         cancela la solicitud
  *   GET  /api/account?action=community&q=                               preguntas de otros usuarios (Plan Premium, anonimizadas)
+ *   GET  /api/account?action=materials                                  material asignado a MI plan (suscripción vigente)
+ *   POST /api/account?action=material-url  {id}                         URL firmada (2 min) para descargar un material de mi plan
+ *   GET  /api/account?action=site-media                                 (público) fotos y videos del sitio cambiados desde el panel
  */
 const flow = require("./_lib/flow");
 const { getUserFromToken, rest, enc, adminCreateUser, HttpError } = require("./_lib/supa");
 const S = require("./_lib/subs");
 const V = require("./_lib/video");
+const C = require("./_lib/content");
+const ST = require("./_lib/storage");
 const { readBody, send, bearer, queryOf, handle } = require("./_lib/http");
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -229,11 +234,52 @@ async function videoCancel(req, res, user) {
   send(res, 200, { ok: true, item: V.publicCall(rows[0]) });
 }
 
-const ROUTES = { me, start, message, cancel, "change-plan": changePlan, "change-card": changeCard, community, videos, "video-request": videoRequest, "video-accept": videoAccept, "video-cancel": videoCancel };
+/* ---------- material por plan: solo lo ve y lo descarga quien tiene su plan vigente ---------- */
+async function accessiblePlan(user) {
+  let sub = await S.getSubscriber(user.id);
+  sub = await S.maybeSync(sub);
+  if (!S.canAsk(sub)) throw new HttpError(403, "Tu suscripción no está activa. Renueva tu plan para ver el material.", "inactive");
+  return sub.plan;
+}
+
+async function materials(req, res, user) {
+  const plan = await accessiblePlan(user);
+  const rows = await rest(`plan_materials?select=id,title,description,category,file_name,content_type,size_bytes,created_at&published=eq.true&plans=cs.${enc(`{${plan}}`)}&order=created_at.desc&limit=500`);
+  send(res, 200, { ok: true, plan, items: (rows || []).map((m) => C.publicMaterial(m)) });
+}
+
+async function materialUrl(req, res, user) {
+  needPost(req);
+  const plan = await accessiblePlan(user);
+  const id = String((await readBody(req)).id || "");
+  if (!C.UUID_RE.test(id)) throw new HttpError(400, "Material no válido.", "bad_id");
+  const rows = await rest(`plan_materials?select=storage_path,file_name,plans,published&id=eq.${enc(id)}`);
+  const m = rows && rows[0];
+  if (!m || !m.published || !(m.plans || []).includes(plan)) throw new HttpError(404, "Ese material no está disponible en tu plan.", "not_found");
+  const url = await ST.createSignedDownload(ST.BUCKET_MATERIAL, m.storage_path, { expiresIn: 120, downloadName: m.file_name });
+  if (!url) throw new HttpError(404, "El archivo no está disponible por ahora. Avísanos por el chat.", "file_missing");
+  send(res, 200, { ok: true, url, fileName: m.file_name, expiresIn: 120 });
+}
+
+/* ---------- fotos y videos del sitio (público, sin sesión) ---------- */
+async function siteMedia(req, res) {
+  let items = {};
+  try {
+    const rows = await rest("site_media?select=slot,kind,storage_path,alt,updated_at&limit=200");
+    for (const r of rows || []) items[r.slot] = { kind: r.kind, url: ST.publicUrl(ST.BUCKET_MEDIA, r.storage_path), alt: r.alt || "", v: r.updated_at };
+  } catch (e) { items = {}; /* sin base de datos: el sitio usa sus archivos de siempre */ }
+  res.setHeader("Cache-Control", "public, s-maxage=30, stale-while-revalidate=300");
+  res.statusCode = 200;
+  res.setHeader("Content-Type", "application/json; charset=utf-8");
+  res.end(JSON.stringify({ ok: true, items }));
+}
+
+const ROUTES = { me, start, message, cancel, "change-plan": changePlan, "change-card": changeCard, community, videos, "video-request": videoRequest, "video-accept": videoAccept, "video-cancel": videoCancel, materials, "material-url": materialUrl };
 
 module.exports = handle(async (req, res) => {
   const action = String(queryOf(req).action || "");
   if (action === "signup") return signup(req, res);
+  if (action === "site-media") return siteMedia(req, res);
   const fn = ROUTES[action];
   if (!fn) throw new HttpError(404, "Acción no encontrada.", "not_found");
   const user = await getUserFromToken(bearer(req));
