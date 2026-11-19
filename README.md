@@ -7,8 +7,8 @@ Base: demo del cliente `demo-cliente` del 5 de noviembre de 2026.
 
 - **Academia desactivada** (el código sigue completo). Se reactiva con `ACADEMIA_ENABLED: true` en `assets/fa-config.js`.
 - **Comprar curso** → checkout de **Hotmart** (`HOTMART_CHECKOUT_URL` en `assets/fa-config.js`).
-- **Suscripción para preguntarle al equipo** → **Flow, cobro mensual automático** con tarjeta registrada, hasta que el cliente cancele. Los planes ya tienen un campo `hotmartCheckoutUrl` (vacío) para pegar el link de Hotmart cuando esté listo; el cobro sigue en Flow hasta ese cambio.
-- **Mi cuenta** (`mi-cuenta.html`): el suscriptor ve su plan, estado, próximo cobro, tarjeta, preguntas disponibles del período, el **chat con el equipo**, sus **pagos**, y puede **cancelar**, **cambiar de plan** o **cambiar la tarjeta**. El **Plan Profesional** suma **preguntas de otros usuarios** (solo lectura, sin nombre ni correo), pestaña para **agendar videollamadas** (el cliente propone día y hora; el equipo confirma), y secciones de **ebooks** y **biblioteca** (próximamente). El botón **Entrar a la videollamada** se habilita 10 minutos antes y abre la sala de meet.jit.si en una pestaña nueva, sin límite de tiempo.
+- **Suscripción para preguntarle al equipo** → **Flow, cobro mensual automático** con tarjeta registrada, hasta que el cliente cancele. Cada plan tiene su `hotmartCheckoutUrl` en `assets/fa-config.js`: los botones «Suscribirme para preguntar» de `planes.html` y de la portada abren el link de pago de Hotmart del plan en una pestaña nueva. El alta con Flow y Mi cuenta siguen en el código para los suscriptores existentes.
+- **Mi cuenta** (`mi-cuenta.html`): el suscriptor ve su plan, estado, próximo cobro, tarjeta, preguntas disponibles del período, el **chat con el equipo**, sus **pagos**, y puede **cancelar**, **cambiar de plan** o **cambiar la tarjeta**. El **Plan Premium** suma **preguntas de otros usuarios** (solo lectura, sin nombre ni correo), pestaña para **agendar videollamadas** (el cliente propone día y hora; el equipo confirma), y secciones de **ebooks** y **biblioteca** (próximamente). El botón **Entrar a la videollamada** se habilita 10 minutos antes y abre la sala de meet.jit.si en una pestaña nueva, sin límite de tiempo.
 - **Panel del equipo** (`equipo.html`): suscriptores, preguntas por responder, responder, pagos, estado en Flow, solicitudes de videollamada (confirmar, proponer otra hora, cancelar o entrar en una pestaña nueva) y botón para crear los planes en Flow.
 - `admin.html` es la maqueta anterior (catálogo, video y links guardados solo en el navegador). Muestra un aviso que apunta al panel real.
 
@@ -20,7 +20,7 @@ Base: demo del cliente `demo-cliente` del 5 de noviembre de 2026.
 |---|---|---|---|---|
 | Plan Aprendiz | Inicial | `basico` | $5.000 CLP | 3 preguntas mensuales |
 | Plan Técnico | Intermedio | `pro` | $10.000 CLP | Preguntas ilimitadas |
-| Plan Profesional | Premium | `premium` | $20.000 CLP | Ilimitadas + videollamadas + preguntas de otros + ebooks y biblioteca (próximamente) |
+| Plan Premium | Premium | `premium` | $20.000 CLP | Ilimitadas + videollamadas + preguntas de otros + ebooks y biblioteca (próximamente) |
 
 - El período es el ciclo de cobro de Flow (si falta, los últimos 30 días). Solo cuentan los mensajes del cliente.
 - Flow no permite cambiar el monto de un plan con suscriptores: cada monto crea su propio plan (`fa-basico-5000`, …). Si cambias un precio, los nuevos suscriptores toman el nuevo plan y los antiguos siguen con el suyo.

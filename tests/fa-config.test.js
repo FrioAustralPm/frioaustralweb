@@ -15,7 +15,7 @@ test("fa-config.js deja la Academia apagada y usa la URL exacta de Hotmart", () 
 test("precios de la suscripción en un solo lugar", () => {
   const cfg = require("../assets/fa-config.js");
   assert.deepEqual(Object.fromEntries(Object.entries(cfg.PLANS).map(([k, p]) => [k, p.amount])), { basico: 5000, pro: 10000, premium: 20000 });
-  assert.deepEqual(cfg.PLAN_LABELS, { basico: "Plan Aprendiz", pro: "Plan Técnico", premium: "Plan Profesional" });
+  assert.deepEqual(cfg.PLAN_LABELS, { basico: "Plan Aprendiz", pro: "Plan Técnico", premium: "Plan Premium" });
   assert.equal(cfg.PLANS.basico.label, "Inicial");
   assert.equal(cfg.PLANS.pro.label, "Intermedio");
   assert.equal(cfg.PLANS.premium.label, "Premium");
@@ -32,9 +32,23 @@ test("precios de la suscripción en un solo lugar", () => {
   assert.equal(cfg.PLANS.premium.biblioteca, true);
   assert.equal(cfg.PLANS.premium.community, true);
   assert.equal(cfg.PLANS.premium.calls, true);
-  for (const p of Object.values(cfg.PLANS)) {
-    assert.equal(p.hotmartCheckoutUrl, "", "el link de Hotmart del plan debe quedar vacío hasta que Mathias lo pegue");
+  assert.equal(cfg.PLANS.basico.hotmartCheckoutUrl, "https://pay.hotmart.com/D108538114T");
+  assert.equal(cfg.PLANS.pro.hotmartCheckoutUrl, "https://pay.hotmart.com/F108559411V");
+  assert.equal(cfg.PLANS.premium.hotmartCheckoutUrl, "https://pay.hotmart.com/W108559868U");
+});
+
+test("los botones de suscripción de planes.html y de la portada abren el link de Hotmart de su plan en pestaña nueva", () => {
+  const fs = require("node:fs");
+  const cfg = require("../assets/fa-config.js");
+  const planes = fs.readFileSync(require("node:path").join(__dirname, "..", "planes.html"), "utf8");
+  const index = fs.readFileSync(require("node:path").join(__dirname, "..", "index.html"), "utf8");
+  for (const [k, p] of Object.entries(cfg.PLANS)) {
+    const a = new RegExp(`<a [^>]*data-plan="${k}"[^>]*href="${p.hotmartCheckoutUrl}"[^>]*target="_blank"[^>]*rel="noopener"`);
+    assert.ok(a.test(planes), `planes.html: botón de ${p.name} sin su link de Hotmart`);
+    const b = new RegExp(`<a [^>]*href="${p.hotmartCheckoutUrl}" target="_blank" rel="noopener">Suscribirme para preguntar`);
+    assert.ok(b.test(index), `index.html: botón de ${p.name} sin su link de Hotmart`);
   }
+  assert.ok(!/Plan Profesional/.test(planes + index), "ya no debe quedar el nombre Plan Profesional");
 });
 
 test("los textos de los planes coinciden con lo publicado", () => {

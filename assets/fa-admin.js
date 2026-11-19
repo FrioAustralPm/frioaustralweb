@@ -39,7 +39,7 @@ const seed=()=>({subs:[
  {id:'s3',nombre:'Camila Ruiz',email:'camila@ejemplo.cl',plan:'basico',estado:'vencida',usadas:3,msgs:[{de:'u',t:'¿Sirve el R134a en un auto con R1234yf?',f:now()},{de:'a',t:'No, no se deben mezclar ni reemplazar.',f:now()}]}],me:null});
 const db=()=>{try{return JSON.parse(localStorage.getItem(K))||seed()}catch(e){return seed()}};
 const save=d=>localStorage.setItem(K,JSON.stringify(d));
-const PL={basico:{n:'Plan Aprendiz',p:5000,lim:3},pro:{n:'Plan Técnico',p:10000,lim:Infinity},premium:{n:'Plan Profesional',p:20000,lim:Infinity}};
+const PL={basico:{n:'Plan Aprendiz',p:5000,lim:3},pro:{n:'Plan Técnico',p:10000,lim:Infinity},premium:{n:'Plan Premium',p:20000,lim:Infinity}};
 const planChip=p=>`<span class="chip p-${esc(p)}">${esc((PL[p]||{n:p}).n)} · ${clp((PL[p]||{}).p)}</span>`;
 const estChip=e=>e==='activa'?`<span class="chip e-ok">${I('check')}Al día</span>`:`<span class="chip e-bad">${I('pause')}Vencida</span>`;
 const pending=s=>s.msgs.length&&s.msgs[s.msgs.length-1].de==='u';
@@ -179,7 +179,7 @@ function bindChat(s){const cb=$('#cb'),cm=$('#cm');cb.scrollTop=cb.scrollHeight;
   localStorage.removeItem(draftK(s.id));route();toast('Respuesta enviada a '+first(s.nombre));setTimeout(()=>{const c=$('#cm');c&&c.focus()},0)}}
 /* ---------- Suscriptores ---------- */
 let SF='todos',SQ='';
-const FIL=[['todos','Todos'],['activa','Al día'],['vencida','Vencidos'],['basico','Aprendiz $5.000'],['pro','Técnico $10.000'],['premium','Profesional $20.000']];
+const FIL=[['todos','Todos'],['activa','Al día'],['vencida','Vencidos'],['basico','Aprendiz $5.000'],['pro','Técnico $10.000'],['premium','Premium $20.000']];
 function suscriptores(f){if(f&&FIL.some(x=>x[0]===f))SF=f;
  view(`<div class="ph"><div><h1>Clientes</h1><p>Personas suscritas a los planes de preguntas.</p></div></div>
  <div class="srch">${I('search')}<label class="sr" for="sq">Buscar cliente</label><input class="in" id="sq" type="search" placeholder="Buscar por nombre o correo" value="${esc(SQ)}"></div>

@@ -1,4 +1,4 @@
-/* Videollamadas del Plan Profesional: permisos, salas privadas y flujo de agenda. */
+/* Videollamadas del Plan Premium: permisos, salas privadas y flujo de agenda. */
 const { test, beforeEach } = require("node:test");
 const assert = require("node:assert/strict");
 
@@ -61,7 +61,7 @@ function call(h, { method = "GET", url, body, as }) {
 const inHours = (h) => new Date(Date.now() + h * 3600e3).toISOString();
 const request = (as = "pro", when = inHours(24)) => call(account, { method: "POST", url: "/api/account?action=video-request", body: { when, note: "Compresor" }, as });
 
-test("solo el Plan Profesional puede pedir videollamadas (lo valida el servidor)", async () => {
+test("solo el Plan Premium puede pedir videollamadas (lo valida el servidor)", async () => {
   for (const plan of ["basico", "pro"]) {
     db.subscribers[0].plan = plan;
     const r = await request();
