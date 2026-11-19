@@ -37,7 +37,7 @@
     root.innerHTML = `
       ${list.flowEnv === "sandbox" ? `<p class="fa-cta-msg warn mono">Flow en modo sandbox (pruebas).</p>` : ""}
       <div class="fa-acc-head"><div><span class="mono fa-ej">Panel del equipo</span><h2>Suscriptores y preguntas</h2></div>
-        <div class="fa-row"><button class="btn btn-line btn-sm" id="faPlans" title="Crea en Flow los planes con los precios de fa-config.js si no existen">Verificar planes en Flow</button><button class="btn btn-line btn-sm" id="faOut">Salir</button></div></div>
+        <div class="fa-row"><a class="btn btn-red btn-sm" href="contenido.html">Material y fotos del sitio</a><button class="btn btn-line btn-sm" id="faPlans" title="Crea en Flow los planes con los precios de fa-config.js si no existen">Verificar planes en Flow</button><button class="btn btn-line btn-sm" id="faOut">Salir</button></div></div>
       <div class="fa-kpis">
         <div class="fa-card glass"><span class="fa-ej mono">Por responder</span><b>${st.unread}</b></div>
         <div class="fa-card glass"><span class="fa-ej mono">Activos</span><b>${st.active}</b><small>de ${st.total}</small></div>

@@ -219,7 +219,9 @@ function publicSub(sub) {
     nextChargeAt: sub.next_charge_at,
     cancelAtPeriodEnd: !!sub.cancel_at_period_end,
     card: sub.card_last4 ? { brand: sub.card_brand, last4: sub.card_last4 } : null,
-    hasSubscription: !!sub.flow_subscription_id,
+    /* Suscripción con Flow, o plan asignado por el equipo (compra por Hotmart, sin Flow). */
+    hasSubscription: !!sub.flow_subscription_id || !!sub.plan,
+    manual: !sub.flow_subscription_id && !!sub.plan,
     syncedAt: sub.synced_at,
   };
 }

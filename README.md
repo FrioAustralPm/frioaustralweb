@@ -36,7 +36,7 @@ Base: demo del cliente `demo-cliente` del 5 de noviembre de 2026.
 
 ## Datos (Supabase)
 
-Proyecto dedicado **Frio Austral** (`akanruuybegwxfjxdpub`, región São Paulo, plan gratis). Migración: `supabase/migrations/20261112220000_suscripciones_mi_cuenta.sql` (ya aplicada).
+Proyecto dedicado **Frio Austral** (`kgxwjywupnnvceyziymj`, cuenta Supabase de Frío Austral). Migraciones aplicadas (todas aditivas): `20261112220000_suscripciones_mi_cuenta.sql`, `20261117130000_videollamadas.sql`, `20261119120000_material_planes_y_medios.sql` y `20261119121500_fa_has_plan_access_invoker.sql`.
 
 Tablas `subscribers`, `messages`, `payments`, `admins`, todas con RLS: cada usuario solo puede **leer** lo suyo y nadie escribe desde el navegador; las escrituras pasan por `/api` con la service role, que aplica cupos y reglas.
 
@@ -49,7 +49,7 @@ Ver `.env.example`. **Nunca** se suben claves a git.
 | `FLOW_API_KEY`, `FLOW_SECRET_KEY` | Flow → Integraciones → Datos de integración (sandbox o producción) | Sí |
 | `FLOW_API_URL` | `https://sandbox.flow.cl/api` (pruebas) o `https://www.flow.cl/api` (real) | No |
 | `SITE_URL` | Dominio público, sin `/` final | No |
-| `SUPABASE_URL` | `https://akanruuybegwxfjxdpub.supabase.co` | No |
+| `SUPABASE_URL` | `https://kgxwjywupnnvceyziymj.supabase.co` | No |
 | `SUPABASE_ANON_KEY` | Supabase → Project Settings → API Keys (anon / publishable) | No |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Project Settings → API Keys (service_role / secret) | **Sí** |
 | `ADMIN_EMAILS` | Emails del equipo que entran a `equipo.html`, separados por coma | No |
@@ -85,3 +85,20 @@ Solo van a git imágenes optimizadas y videos de menos de ~5 MB (ver `.gitignore
 ## Origen
 
 No se modificaron `D:\PROYECTOS\frio-austral\demo-cliente`, `05-premium` ni `05-premium-media-preview`.
+
+## Contenido del sitio (panel del equipo)
+
+`contenido.html` (se entra con la misma cuenta del equipo que `equipo.html`; hay un botón en ese panel) tiene tres pestañas:
+
+- **Material por plan**: se sube un archivo (PDF, EPUB, ZIP, Word, Excel, PowerPoint, texto, imagen o video, hasta 50 MB), se le pone título, categoría (Ebook, Biblioteca, Guía, Video, Recurso) y se elige a qué planes va (uno o varios). Los suscriptores lo ven en **Mi cuenta → Material** (y en Ebooks / Biblioteca del Plan Premium) y lo descargan con un enlace firmado de 2 minutos. Se puede ocultar, editar o eliminar.
+- **Fotos y videos**: cada espacio del catálogo `assets/fa-slots.js` (portadas, secciones, galería del taller, reels, video de bienvenida y video del curso) se puede cambiar subiendo un archivo nuevo. «Volver al original» borra el archivo subido. Si no hay archivo nuevo o no carga, el sitio usa el archivo de siempre (`assets/fa-medios.js`).
+- **Accesos por plan**: la suscripción se paga en Hotmart y este sitio no recibe aviso del pago. Quien compra crea su cuenta con el mismo correo y el equipo le asigna el plan y la fecha hasta la que tiene acceso (normalmente un mes por pago). Quien paga con Flow se actualiza solo y no se puede cambiar a mano.
+
+### Cómo se controla el acceso
+
+- Bucket **`plan-material` privado** (sin URL pública). El navegador nunca recibe la ruta del archivo: `/api/account?action=material-url` comprueba sesión, plan del material y suscripción vigente (estado activa, período no vencido) y recién ahí entrega una URL firmada de 120 segundos.
+- RLS en `plan_materials` y en `storage.objects` (función `fa_has_plan_access`): aunque alguien use la API de Supabase directamente, solo ve lo asignado a su plan vigente. Escribir (subir, editar, borrar) solo lo hace `/api/admin` con la service role, y solo para cuentas del equipo.
+- Bucket **`site-media` público** (son las mismas fotos que ve cualquier visitante); solo el equipo escribe.
+- Subidas: el servidor entrega un token de subida de un solo uso para una ruta concreta; el archivo viaja directo del navegador a Storage (sin pasar por la función de Vercel, que tiene límite de 4,5 MB).
+
+Migraciones (aditivas): `20261119120000_material_planes_y_medios.sql` y `20261119121500_fa_has_plan_access_invoker.sql`.
