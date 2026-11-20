@@ -4,7 +4,7 @@
 (function () {
   "use strict";
 
-  var MEASUREMENT_ID = ""; // <- ID de medición de GA4, por ejemplo "G-XXXXXXXXXX"
+  var MEASUREMENT_ID = "G-WH0C08XDXW"; // ID de medición de GA4 de frioaustralspa.cl
 
   if (!/^G-[A-Z0-9]{4,}$/.test(MEASUREMENT_ID)) return;
 
