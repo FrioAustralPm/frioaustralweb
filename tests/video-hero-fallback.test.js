@@ -86,11 +86,12 @@ test("si el video no avanza (~3 s) aunque play() no responda, aparece el botón 
     await Promise.resolve(); mock.timers.tick(700); await Promise.resolve();
     assert.equal(s.v.autoplay, true);
     assert.equal(s.play().hidden, true, "al inicio no se muestra el botón");
-    const first = s.sources()[0];
+    const first = s.v.src;
     mock.timers.tick(3600);
     assert.equal(s.play().hidden, false, "el botón aparece aunque el video figure como no pausado");
-    assert.notEqual(s.sources()[0], first, "se cambia a la siguiente fuente");
-    assert.match(s.sources()[0], /-720\.mp4$/);
+    mock.timers.tick(2000);
+    assert.notEqual(s.v.src, first, "se cambia a la siguiente fuente");
+    assert.match(s.v.src, /-720\.mp4$/);
   } finally { mock.timers.reset(); }
 });
 
@@ -109,4 +110,39 @@ test("el CSS ya no oculta el video ni los controles del hero con reduced-motion"
   const css = fs.readFileSync(path.join(__dirname, "..", "assets/media.css"), "utf8");
   assert.doesNotMatch(css, /prefers-reduced-motion:\s*reduce\)\s*\{[^}]*hero-vid\{display:none/);
   assert.doesNotMatch(css, /prefers-reduced-motion:\s*reduce\)\s*\{\s*\.fa-sound\{display:none/);
+});
+
+test("iPhone/Safari iOS: src directo, MP4 H.264 primero; WebM solo si el navegador no decodifica MP4; sin <source> ni opacity:0", async () => {
+  mock.timers.enable({ apis: ["setTimeout", "setInterval"] });
+  try {
+    const s = setup({ reduce: false, playImpl: (v) => { v.paused = false; return Promise.resolve(); } });
+    await Promise.resolve(); mock.timers.tick(700); await Promise.resolve();
+    assert.match(s.v.src, /v1-hero-intro-(720|1080)\.mp4$/, "la primera fuente es MP4");
+    assert.equal(s.sources().length, 0, "no se inyectan <source>: el video usa src directo");
+    assert.equal(s.v.attrs.playsinline, "");
+    assert.equal(s.v.attrs["webkit-playsinline"], "");
+    assert.equal(s.v.muted, true);
+    assert.equal(s.v.autoplay, true);
+  } finally { mock.timers.reset(); }
+});
+
+test("si play() falla con NotSupportedError se prueba la siguiente fuente; un toque sobre el hero con el video pausado reproduce", async () => {
+  mock.timers.enable({ apis: ["setTimeout", "setInterval"] });
+  try {
+    let n = 0;
+    const s = setup({ reduce: false, playImpl: (v) => { n++; if (n === 1) { const e = new Error("x"); e.name = "NotSupportedError"; return Promise.reject(e); } v.paused = false; return Promise.resolve(); } });
+    await Promise.resolve(); mock.timers.tick(700); await Promise.resolve(); await Promise.resolve();
+    assert.ok(s.v.plays >= 2, "reintenta con otra fuente");
+    assert.match(s.v.src, /-720\.mp4$/);
+    s.v.paused = true;
+    const plays = s.v.plays;
+    s.hero.listeners.click[0]({ target: { closest: () => null } });
+    assert.equal(s.v.plays, plays + 1, "tocar el video pausado reproduce");
+  } finally { mock.timers.reset(); }
+});
+
+test("el CSS del hero no oculta el video con opacity:0 y media.js no pelea con el volumen (iOS)", () => {
+  const css = fs.readFileSync(path.join(__dirname, "..", "assets/media.css"), "utf8");
+  assert.doesNotMatch(css, /video\.hero-vid\{[^}]*opacity:0/);
+  assert.doesNotMatch(code, /volumechange|\.volume\s*=/);
 });

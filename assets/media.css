@@ -4,8 +4,7 @@ picture{display:block}
 .hero .ph-img.fa-hero-media{background:#05070b!important}
 .hero .fa-hero-poster,.hero .fa-hero-poster img{position:absolute;inset:0;width:100%;height:100%}
 .hero .fa-hero-poster img{object-fit:cover;object-position:50% 22%}
-.hero .ph-img.fa-hero-media video.hero-vid{position:absolute;inset:0;opacity:0;transition:opacity .6s;object-position:50% 22%!important}
-.hero .ph-img.fa-playing video.hero-vid{opacity:1}
+.hero .ph-img.fa-hero-media video.hero-vid{position:absolute;inset:0;display:block;opacity:1;background:transparent;object-position:50% 22%!important}
 @media(min-width:880px){.hero .fa-hero-poster img,.hero .ph-img.fa-hero-media video.hero-vid{object-position:62% 30%!important}}
 .hero video.hero-vid::cue{background:rgba(5,7,11,.78);color:#fff;font-size:15px}
 .fa-cap{position:absolute;z-index:2;left:50%;transform:translateX(-50%);width:min(92%,560px);margin:0;padding:6px 12px;border-radius:10px;background:rgba(5,7,11,.8);color:#fff;font:600 14px/1.4 Manrope,system-ui,sans-serif;text-align:center;opacity:0;transition:opacity .2s;pointer-events:none}

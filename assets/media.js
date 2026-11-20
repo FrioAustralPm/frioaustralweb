@@ -21,14 +21,23 @@ const fix=v=>{const n=v.dataset.media,o=ovr(n),t=v.querySelector('track');
  if(!o&&t)t.src=MEDIA_BASE+n+'.es.vtt';
  return ()=>next(i)};
 const capsOn=v=>{for(const t of v.textTracks)if(t.kind==='captions')t.mode='showing'};
-/* Hero V1: autoplay muteado + botón "Activar sonido" (reinicia en el frame 0).
-   Con sonido activado: fuera de vista => silencio; al volver => sonido.
-   reduced-motion (p.ej. Windows con "Efectos de animación" apagado o "mejor rendimiento"): no hay autoplay,
-   pero el video queda disponible con el botón "Reproducir video" visible. Nunca queda solo el poster sin salida. */
+/* Hero V1 — reproductor nativo simple, pensado para iPhone/Safari iOS:
+   - <video muted playsinline> con UNA sola fuente (src directo): MP4 H.264 primero, WebM solo si el navegador no decodifica MP4.
+   - Siempre visible (nada de opacity:0 ni de esperar el evento "playing": iOS no reproduce ni pausa un video "no visible" por CSS).
+   - Autoplay mudo con play() explícito; si iOS lo bloquea (Modo de bajo consumo, ahorro de datos) queda el poster,
+     el botón "Reproducir video" y cualquier toque sobre el video reproduce (gesto del usuario => siempre funciona).
+   - Sin bucles de re-mute/re-play: no se modifica el volumen del elemento (en iOS es de solo lectura).
+   - Botón "Activar sonido": solo con un toque; reinicia en el frame 0. */
+const cands=(v,n,o)=>{const l=[];const qs=q==='720'?['720']:[q,'720'];
+ if(o)l.push(o);
+ qs.forEach(x=>l.push(`${MEDIA_BASE}${n}-${x}.mp4`));qs.forEach(x=>l.push(`${MEDIA_BASE}${n}-${x}.webm`));
+ const can=u=>{try{return v.canPlayType(/\.webm(\?|$)/i.test(u)?'video/webm':'video/mp4')!==''}catch(e){return true}};
+ const ok=l.filter(can);return ok.length?ok:l};
 function hero(){const v=document.querySelector('.hero video.hero-vid[data-media]');const btn=document.querySelector('.hero .fa-sound');
  if(!v){if(btn)btn.hidden=true;return}
- const hb=v.closest('.hero');
+ const hb=v.closest('.hero');const n=v.dataset.media,o=ovr(n),t=v.querySelector('track');
  const pi=document.querySelector('.fa-hero-poster img');v.poster=(pi&&pi.currentSrc)||'media/img/i1-hero-poster-960.webp';
+ if(o&&t)t.remove();
  /* controles agrupados en una zona libre (nunca sobre la cara): reproducir / sonido / subtítulos */
  const ctl=document.createElement('div');ctl.className='fa-ctl';
  const play=document.createElement('button');play.type='button';play.className='fa-sound fa-play';play.hidden=true;
@@ -36,37 +45,43 @@ function hero(){const v=document.querySelector('.hero video.hero-vid[data-media]
  const cc=document.createElement('button');cc.type='button';cc.className='fa-sound fa-cc';cc.setAttribute('aria-pressed','true');cc.setAttribute('aria-label','Ocultar subtítulos');cc.title='Ocultar subtítulos';
  cc.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10.5 10.2a2.2 2.2 0 1 0 0 3.6"/><path d="M16.5 10.2a2.2 2.2 0 1 0 0 3.6"/><path class="x" d="M4 20 20 4"/></svg>';
  ctl.appendChild(play);if(btn)ctl.appendChild(btn);ctl.appendChild(cc);hb.appendChild(ctl);
- const nextSrc=fix(v);
- /* Safari/WebKit a veces quita el mute por dentro (~300 ms tras playing) y pausa el autoplay;
-    volume=0 + volver a mutear lo evita. El botón de sonido sigue pudiendo activar el audio. */
- let started=false,want=!rm,inView=true,on=false,resuming=0;
- const silence=()=>{if(on)return;v.muted=true;v.defaultMuted=true;v.setAttribute('muted','');if(v.volume!==0)v.volume=0};
- v.preload='metadata';silence();v.autoplay=!rm;v.load();silence();
- /* autoplay: si el navegador lo bloquea (Brave Shields, ahorro de datos, etc.) queda el poster y un botón que sí funciona */
- const ok=()=>{hb.classList.remove('fa-blocked');play.hidden=true};
- v.addEventListener('playing',()=>{started=true;silence();v.closest('.ph-img').classList.add('fa-playing')});
- v.addEventListener('volumechange',silence);
- v.addEventListener('pause',()=>{if(on||!want||document.hidden||!inView)return;silence();const now=Date.now();if(now-resuming<400)return;resuming=now;attempt()});
- const blocked=()=>{hb.classList.add('fa-blocked');play.hidden=false};
- const attempt=()=>{want=true;silence();try{const p=v.play();if(p&&p.catch)p.catch(e=>{if(!e||e.name!=='AbortError')blocked()})}catch(e){blocked()}};
- if(rm)blocked();else attempt();
- /* vigilante: si el video no avanza (~3 s) aunque debería (autoplay pendiente sin promesa, decode atascado,
-    red lenta, etc.) se muestra el botón y se prueba la siguiente fuente una vez. Si vuelve a avanzar, se oculta. */
- let lastT=v.currentTime,stuck=0,switched=false;
+ let want=!rm,inView=true,on=false,started=false,stuck=0,lastT=0,i=0,adv=false;
+ const list=cands(v,n,o);
+ const mute=()=>{if(on)return;v.muted=true;v.defaultMuted=true};
+ v.muted=true;v.defaultMuted=true;
+ v.setAttribute('muted','');v.setAttribute('playsinline','');v.setAttribute('webkit-playsinline','');v.playsInline=true;v.setAttribute('disableremoteplayback','');
+ if(!rm)v.autoplay=true;
+ const showPlay=()=>{hb.classList.add('fa-blocked');play.hidden=false};
+ const hidePlay=()=>{hb.classList.remove('fa-blocked');play.hidden=true};
+ /* siguiente fuente (404, códec que el navegador no decodifica); la última vez deja el botón */
+ const next=()=>{if(i+1>=list.length||adv)return false;adv=true;i++;v.src=list[i];v.load();setTimeout(()=>{adv=false},300);attempt();return true};
+ const attempt=()=>{want=true;mute();try{const p=v.play();if(p&&p.catch)p.catch(e=>{const nm=e&&e.name;if(nm==='AbortError')return;if(nm==='NotSupportedError'&&next())return;showPlay()})}catch(e){showPlay()}};
+ v.addEventListener('error',()=>{if(!next())showPlay()});
+ v.addEventListener('playing',()=>{started=true;stuck=0;hidePlay();v.closest('.ph-img').classList.add('fa-playing')});
+ /* si el sistema pausa el video (bajo consumo, otra app, etc.) no se entra en un bucle: se ofrece el botón */
+ v.addEventListener('pause',()=>{if(on||!want||document.hidden||!inView||v.ended)return;setTimeout(()=>{if(v.paused&&want&&!document.hidden)showPlay()},350)});
+ const kick=()=>{if(want&&v.paused&&inView&&!document.hidden&&!rm)attempt()};
+ document.addEventListener('visibilitychange',kick);
+ v.src=list[0];v.preload='metadata';
+ if(rm)showPlay();else attempt();
+ /* vigilante: si el video no avanza (~3 s) aunque debería, se muestra el botón (y una vez se prueba la siguiente fuente) */
  setInterval(()=>{if(!want||document.hidden||!inView)return;
-  if(v.currentTime!==lastT&&!v.paused){lastT=v.currentTime;stuck=0;if(started)ok();return}
-  if(++stuck===3){blocked();if(!switched&&!started){switched=true;nextSrc()}}},1000);
- v.addEventListener('fa-fallback',()=>{silence();if(!started)attempt()});
- play.addEventListener('click',()=>{silence();stuck=0;attempt()});
- if(!rm)['pointerdown','keydown','touchend'].forEach(ev=>addEventListener(ev,()=>{if(!started){silence();attempt()}},{once:true,passive:true}));
- const set=()=>{if(!btn)return;btn.setAttribute('aria-pressed',on?'true':'false');const t=on?'Silenciar':'Activar sonido';btn.setAttribute('aria-label',t);btn.title=t};
- if(btn){btn.hidden=false;btn.addEventListener('click',()=>{on=!on;if(on){v.volume=1;v.currentTime=0;v.muted=false;v.play().catch(()=>{on=false;silence();set()})}else silence();set()})}
- if('IntersectionObserver' in window){new IntersectionObserver(es=>es.forEach(e=>{inView=e.isIntersecting;if(on)v.muted=!inView}),{threshold:.35}).observe(v)}
+  if(!v.paused&&v.currentTime>lastT+0.05){lastT=v.currentTime;stuck=0;hidePlay();return}
+  lastT=Math.max(lastT,v.currentTime);
+  stuck++;if(stuck===3)showPlay();if(stuck===5&&!started)next()},1000);
+ /* tocar el botón o el video reproduce (gesto del usuario); además el primer toque en la página reintenta el autoplay */
+ const user=()=>{stuck=0;attempt()};
+ play.addEventListener('click',user);
+ hb.addEventListener('click',e=>{if(!v.paused||e.target.closest('a,button,input,select,textarea,summary,label'))return;if(hb.classList.contains('fa-blocked')||!started)user()});
+ if(!rm)['pointerdown','keydown','touchend'].forEach(ev=>addEventListener(ev,()=>{if(!started)attempt()},{once:true,passive:true}));
+ const set=()=>{if(!btn)return;btn.setAttribute('aria-pressed',on?'true':'false');const x=on?'Silenciar':'Activar sonido';btn.setAttribute('aria-label',x);btn.title=x};
+ if(btn){btn.hidden=false;btn.addEventListener('click',()=>{on=!on;if(on){v.currentTime=0;v.muted=false;const p=v.play();if(p&&p.catch)p.catch(()=>{on=false;mute();attempt();set()})}else{mute();if(v.paused)attempt()}set()})}
+ if('IntersectionObserver' in window){new IntersectionObserver(es=>es.forEach(e=>{inView=e.isIntersecting;if(on)v.muted=!inView;else if(inView)kick()}),{threshold:.35}).observe(v)}
  /* subtítulos propios: sobre el torso, nunca sobre la cara; se pueden ocultar */
  const cap=document.createElement('p');cap.className='fa-cap';cap.setAttribute('aria-hidden','true');hb.appendChild(cap);
- cc.addEventListener('click',()=>{const off=!cap.classList.contains('off');cap.classList.toggle('off',off);cc.setAttribute('aria-pressed',off?'false':'true');const t=off?'Mostrar subtítulos':'Ocultar subtítulos';cc.setAttribute('aria-label',t);cc.title=t});
+ cc.addEventListener('click',()=>{const off=!cap.classList.contains('off');cap.classList.toggle('off',off);cc.setAttribute('aria-pressed',off?'false':'true');const x=off?'Mostrar subtítulos':'Ocultar subtítulos';cc.setAttribute('aria-label',x);cc.title=x});
  const place=()=>{if(matchMedia('(max-width: 879px)').matches){cap.style.top='';cap.style.bottom='';cap.style.right=''}else{cap.style.top='';const w=hb.querySelector('.who');if(w){const hr=hb.getBoundingClientRect(),wr=w.getBoundingClientRect();cap.style.bottom=Math.round(hr.bottom-wr.top+14)+'px';cap.style.right=Math.round(hr.right-wr.right)+'px'}}};place();addEventListener('resize',place);
- const tr=v.textTracks[0];if(tr){tr.mode='hidden';tr.addEventListener('cuechange',()=>{const c=tr.activeCues&&tr.activeCues[0];cap.textContent=c?c.text.replace(/\n/g,' '):'';cap.classList.toggle('on',!!c)})}}
+ const tr=v.textTracks&&v.textTracks[0];if(tr){tr.mode='hidden';tr.addEventListener('cuechange',()=>{const c=tr.activeCues&&tr.activeCues[0];cap.textContent=c?c.text.replace(/\n/g,' '):'';cap.classList.toggle('on',!!c)})}}
 /* V2 y otros: click-to-play, se cargan al acercarse al viewport */
 function lazy(){const vs=document.querySelectorAll('video.fa-lazyvid[data-media]');if(!vs.length)return;
  const go=v=>{if(v.dataset.ok)return;v.dataset.ok=1;fix(v);v.preload='metadata';v.load()};

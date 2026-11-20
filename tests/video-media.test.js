@@ -33,6 +33,7 @@ test("los mp4 son h264 con faststart (moov antes de mdat) para reproducir en Saf
 test("media.js cae a la versión -720 si la fuente falla y muestra botón de reproducir si el autoplay se bloquea", () => {
   const js = fs.readFileSync(path.join(root, "assets/media.js"), "utf8");
   assert.match(js, /if\(q!=='720'\)st\.push\(src\(n,'720'\)\)/);
+  assert.match(js, /qs=q==='720'\?\['720'\]:\[q,'720'\]/);
   assert.match(js, /fa-fallback/);
   assert.match(js, /NotAllowedError|AbortError/);
   assert.match(js, /fa-play/);
