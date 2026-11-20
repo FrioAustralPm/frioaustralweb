@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <script src="assets/fa-config.js"></script>
 <script src="assets/fa-gate.js"></script>
-<script src="assets/fa-flow.js"></script>
+<script src="assets/fa-precios.js"></script>
 
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Suscripción para preguntas · Frío Austral</title>
@@ -19,11 +19,13 @@
 <link rel="preload" as="image" type="image/webp" href="media/img/p1-phead-d-1600.webp" media="(min-width:880px)" fetchpriority="high"><link rel="preload" as="image" type="image/webp" href="media/img/p1-phead-m-960.webp" media="(max-width:879px)" fetchpriority="high">
 <link rel="stylesheet" href="assets/media.css">
 <link rel="stylesheet" href="assets/fa-cuenta.css">
+<script src="assets/fa-slots.js"></script><script src="assets/fa-medios.js"></script>
+<script src="assets/fa-analytics.js" defer></script>
 </head>
 <body data-fa="planes">
 <div class="grain" aria-hidden="true"></div>
 <header class="nav solid">
-  <a href="index.html" class="brand" aria-label="Frío Austral, inicio">
+  <a href="index.html" class="brand" aria-label="Frío Austral · Refrigeración y Climatización, inicio">
     <picture><source type="image/webp" srcset="assets/logo-frio-austral-88.webp 1x, assets/logo-frio-austral-160.webp 2x"><img src="assets/logo-frio-austral.png" alt="Logo Frío Austral" width="44" height="44"></picture>
     <span><b>FRÍO AUSTRAL</b><small>Refrigeración y Climatización</small></span>
   </a>
@@ -33,40 +35,42 @@
 </header>
 <div class="drawer">
   <a href="cursos.html">Cursos</a><a href="academia.html">Academia</a><a href="gratis.html">Gratis</a><a href="taller.html">Taller</a><a href="comunidad.html">Comunidad</a><a href="planes.html">Suscripción</a>
-  <a class="btn btn-line" data-link="comprar-curso" href="academia.html?c=aire-acondicionado-automotriz">Comprar curso</a>
+  <a class="btn btn-line" data-link="comprar-curso" data-course="aire-acondicionado-automotriz" href="https://pay.hotmart.com/M101158236T" target="_blank" rel="noopener">Comprar curso</a>
   <a class="btn btn-wa" href="https://wa.me/56987785601?text=Hola%2C%20quiero%20consultar%20por%20el%20aire%20acondicionado%20de%20mi%20veh%C3%ADculo" target="_blank" rel="noopener">WhatsApp taller</a>
 </div>
 <main>
 <section class="phead fa-ph fa-ph-p1"><div class="wrap"><p class="crumb mono"><a href="index.html">Inicio</a> / Suscripción</p><h1 style="font-size:clamp(44px,9vw,92px)">Suscríbete para <span class="ice-text">preguntar.</span></h1><p class="lead">La suscripción mensual es solo para hacerle preguntas al equipo de Frío Austral sobre A/C automotriz. No incluye cursos.</p><p class="fa-solo"><b>¿Buscas un curso?</b> No necesitas suscripción para comprar un curso: los cursos grabados se compran aparte, en pago único. <a href="cursos.html">Ver cursos →</a></p></div></section>
 <section class="section tight" style="padding-top:10px"><div class="wrap fa-plans fa-plans3">
-  <article class="fa-plan glass" id="plan-basico" data-plan="basico"><h3>Consulta</h3><p class="fa-price"><span data-fa-price="basico">$5.000</span> <small>/ mes</small></p><ul><li><span data-fa-quota="basico">3</span> preguntas al mes dentro de la plataforma</li><li>Respuesta del equipo de Frío Austral</li><li>Historial de tus consultas</li></ul><button class="btn btn-glass fa-sub" data-plan="basico">Suscribirme para preguntar</button></article>
-  <article class="fa-plan glass v5-pop" id="plan-pro" data-plan="pro"><span class="fa-tag v5-tag">Más popular</span><h3>Ilimitado</h3><p class="fa-price"><span data-fa-price="pro">$10.000</span> <small>/ mes</small></p><ul><li>Preguntas ilimitadas dentro de la plataforma</li><li>Respuesta del equipo de Frío Austral</li><li>Historial de tus consultas</li></ul><button class="btn btn-red fa-sub" data-plan="pro">Suscribirme para preguntar</button></article>
-  <article class="fa-plan glass" id="plan-premium" data-plan="premium"><span class="fa-tag v5-tag-out">Más completo</span><h3>Taller Pro</h3><p class="fa-price"><span data-fa-price="premium">$20.000</span> <small>/ mes</small></p><ul><li>Preguntas ilimitadas dentro de la plataforma</li><li>Llamadas y videollamadas con el equipo de Frío Austral</li><li>Base de datos con buscador de todas las preguntas y respuestas anteriores de la comunidad</li><li>Historial de tus consultas</li></ul><button class="btn btn-glass fa-sub" data-plan="premium">Suscribirme para preguntar</button></article>
+  <article class="fa-plan glass" id="plan-basico" data-plan="basico"><span class="fa-plan-kicker mono">Inicial</span><h3>Plan Aprendiz</h3><p class="fa-price"><span data-fa-price="basico">$5.000</span> <small>CLP / mes</small></p><p class="fa-plan-tag">Ideal para quienes están comenzando en el mundo del aire acondicionado automotriz.</p><ul><li>3 preguntas mensuales.</li><li>Acceso a tu panel de suscriptor.</li><li>Resolución de dudas técnicas.</li></ul><a class="btn btn-glass fa-sub fa-sub-hotmart" data-plan="basico" href="https://pay.hotmart.com/D108538114T" target="_blank" rel="noopener">Suscribirme para preguntar</a></article>
+  <article class="fa-plan glass v5-pop" id="plan-pro" data-plan="pro"><span class="fa-tag v5-tag">Más popular</span><span class="fa-plan-kicker mono">Intermedio</span><h3>Plan Técnico</h3><p class="fa-price"><span data-fa-price="pro">$10.000</span> <small>CLP / mes</small></p><p class="fa-plan-tag">Ideal para quienes quieren aprender constantemente y resolver todas sus dudas.</p><ul><li>Preguntas ilimitadas.</li><li>Acceso a tu panel de suscriptor.</li><li>Resolución de consultas técnicas.</li></ul><a class="btn btn-red fa-sub fa-sub-hotmart" data-plan="pro" href="https://pay.hotmart.com/F108559411V" target="_blank" rel="noopener">Suscribirme para preguntar</a></article>
+  <article class="fa-plan glass" id="plan-premium" data-plan="premium"><span class="fa-tag v5-tag-out">Más completo</span><span class="fa-plan-kicker mono">Premium</span><h3>Plan Premium</h3><p class="fa-price"><span data-fa-price="premium">$20.000</span> <small>CLP / mes</small></p><p class="fa-plan-tag">Para quienes buscan capacitación continua y acompañamiento personalizado.</p><ul><li>Preguntas ilimitadas.</li><li>Videollamadas de asesoría.</li><li>Acceso a todas las preguntas realizadas por otros usuarios.</li><li>Acceso gratuito a todos los ebooks disponibles.</li><li>Biblioteca de conocimientos para estudiar y profundizar.</li></ul><a class="btn btn-glass fa-sub fa-sub-hotmart" data-plan="premium" href="https://pay.hotmart.com/W108559868U" target="_blank" rel="noopener">Suscribirme para preguntar</a></article>
 </div><p class="fa-note wrap">Planes de cobro mensual. Si la suscripción deja de pagarse, ya no se pueden hacer nuevas preguntas hasta renovarla.</p></section>
-<section class="section tight"><div class="wrap"><h2 class="reveal">Compara los planes de suscripción</h2><div class="v5-tw"><table class="v5-tab"><thead><tr><th>Incluye</th><th>Consulta<br><small data-fa-price="basico">$5.000</small></th><th class="hl">Ilimitado<br><small data-fa-price="pro">$10.000</small></th><th>Taller Pro<br><small data-fa-price="premium">$20.000</small></th></tr></thead><tbody>
-<tr><td>Preguntas al mes</td><td data-fa-quota="basico">3</td><td class="hl">Ilimitadas</td><td>Ilimitadas</td></tr>
-<tr><td>Respuesta del equipo de Frío Austral</td><td>✓</td><td class="hl">✓</td><td>✓</td></tr>
-<tr><td>Historial de consultas</td><td>✓</td><td class="hl">✓</td><td>✓</td></tr>
-<tr><td>Llamadas y videollamadas</td><td aria-label="No">—</td><td class="hl">—</td><td>✓</td></tr>
-<tr><td>Base de preguntas con buscador</td><td aria-label="No">—</td><td class="hl">—</td><td>✓</td></tr>
+<section class="section tight"><div class="wrap"><h2 class="reveal">Compara los planes de suscripción</h2><div class="v5-tw"><table class="v5-tab"><thead><tr><th>Incluye</th><th>Plan Aprendiz<br><small>Inicial · <span data-fa-price="basico">$5.000</span> CLP</small></th><th class="hl">Plan Técnico<br><small>Intermedio · <span data-fa-price="pro">$10.000</span> CLP</small></th><th>Plan Premium<br><small>Premium · <span data-fa-price="premium">$20.000</span> CLP</small></th></tr></thead><tbody>
+<tr><td>Preguntas al mes</td><td>3</td><td class="hl">Ilimitadas</td><td>Ilimitadas</td></tr>
+<tr><td>Acceso a tu panel de suscriptor</td><td>✓</td><td class="hl">✓</td><td>✓</td></tr>
+<tr><td>Resolución de dudas o consultas técnicas</td><td>✓</td><td class="hl">✓</td><td>✓</td></tr>
+<tr><td>Videollamadas de asesoría</td><td aria-label="No">—</td><td class="hl" aria-label="No">—</td><td>✓</td></tr>
+<tr><td>Preguntas realizadas por otros usuarios</td><td aria-label="No">—</td><td class="hl" aria-label="No">—</td><td>✓</td></tr>
+<tr><td>Ebooks disponibles</td><td aria-label="No">—</td><td class="hl" aria-label="No">—</td><td>✓</td></tr>
+<tr><td>Biblioteca de conocimientos</td><td aria-label="No">—</td><td class="hl" aria-label="No">—</td><td>✓</td></tr>
 <tr><td>Cursos grabados</td><td>No incluidos</td><td class="hl">No incluidos</td><td>No incluidos</td></tr></tbody></table></div>
 <h2 class="reveal" style="margin-top:48px">Preguntas sobre pagos</h2><div class="v5-faq">
-<details><summary>¿Necesito suscribirme para comprar un curso?</summary><p>No. Los cursos grabados se compran aparte, en pago único, sin suscripción. La suscripción es solo para hacer preguntas.</p></details>
-<details><summary>¿La suscripción incluye cursos?</summary><p>No. Los planes incluyen solo preguntas (y, en Taller Pro, llamadas, videollamadas y la base de preguntas). Los cursos se compran por separado.</p></details>
-<details><summary>¿Cada cuánto se cobra la suscripción?</summary><p>Los planes de suscripción son de cobro mensual. Los cursos, en cambio, son pago único.</p></details>
+<details><summary>¿Necesito suscribirme para comprar un curso?</summary><p>No. Los cursos grabados se compran aparte, en pago único, sin suscripción. La suscripción es para hacer preguntas y, en el Plan Premium, para los beneficios extra.</p></details>
+<details><summary>¿La suscripción incluye cursos?</summary><p>No. Los cursos grabados se compran por separado. El Plan Premium incluye acceso gratuito a los ebooks y a la biblioteca de conocimientos cuando estén publicados.</p></details>
+<details><summary>¿Cada cuánto se cobra la suscripción?</summary><p>Los planes de suscripción se pagan cada mes con pago seguro. Los cursos, en cambio, son pago único.</p></details>
+<details><summary>¿Cómo activo mi plan después de pagar?</summary><p>Después de pagar, entra a <a href="mi-cuenta.html?compra=ok">Mi cuenta</a> y crea tu cuenta con el <b>mismo correo con el que pagaste</b>. Cuando se confirma el pago, tu plan se activa solo y ves tu material. Si ya tienes cuenta, solo ingresa.</p></details>
 <details><summary>¿Qué pasa si dejo de pagar?</summary><p>Ya no puedes hacer nuevas preguntas hasta renovar la suscripción.</p></details>
-<details><summary>¿Qué diferencia hay entre Ilimitado y Taller Pro?</summary><p>Los dos tienen preguntas ilimitadas. Taller Pro suma llamadas y videollamadas con el equipo de Frío Austral y la base de datos con buscador de preguntas y respuestas anteriores.</p></details>
+<details><summary>¿Qué diferencia hay entre el Plan Técnico y el Plan Premium?</summary><p>Los dos tienen preguntas ilimitadas y acceso a tu panel de suscriptor. El Plan Premium suma videollamadas de asesoría, el historial de preguntas de otros usuarios (sin nombre ni correo), ebooks y la biblioteca de conocimientos.</p></details>
 </div></div></section>
-<div class="fa-modal" id="faModal" hidden><form class="fa-box glass" id="faSubForm"><h3>Suscripción <span id="faPlanName"></span></h3><p class="fa-ej mono">El pago se hace a través de Flow, la pasarela chilena.</p><label>Nombre<input name="nombre" required></label><label>Email<input name="email" type="email" required></label><div class="fa-row"><button type="button" class="btn btn-line btn-sm" data-close>Cancelar</button><button class="btn btn-red btn-sm">Confirmar suscripción</button></div></form></div>
 </main>
 <footer class="footer">
   <div class="wrap foot-grid">
-    <div class="foot-brand"><img src="assets/logo-frio-austral.png" alt="Frío Austral" width="80" height="80"><p>Frío Austral SpA<br>Refrigeración y Climatización<br>Augusto Goecke 296, Puerto Montt</p></div>
-    <div><h5 class="mono">Academia</h5><a href="cursos.html">Cursos</a><a href="academia.html">Academia online</a><a href="planes.html">Suscripción para preguntas</a><a href="gratis.html">Recursos gratis</a><a href="https://wa.me/56961029188">+56 9 6102 9188</a></div>
-    <div><h5 class="mono">Taller</h5><a href="taller.html">Servicios</a><a href="taller.html#ubicacion">Cómo llegar</a><a href="tel:+56987785601">+56 9 8778 5601</a><a href="tienda.html">Tienda</a></div>
-    <div><h5 class="mono">Redes</h5><a href="https://www.instagram.com/frioaustralspa">Instagram</a><a href="https://www.instagram.com/guillermo.gallardo.frioaustral/">Instagram de Guillermo</a><a href="https://www.tiktok.com/@frioaustral">TikTok</a><a href="https://www.youtube.com/@frio.austral">YouTube</a><a href="https://www.facebook.com/share/1AJrwUAzGu/">Facebook</a></div>
+    <div class="foot-brand"><img src="assets/logo-frio-austral.png" alt="Logo Frío Austral" width="80" height="80" loading="lazy" decoding="async"><p>Frío Austral SpA<br>Refrigeración y Climatización<br>Augusto Goecke 296, Puerto Montt</p></div>
+    <div><h5 class="mono" aria-level="2">Academia</h5><a href="cursos.html">Cursos</a><a href="academia.html">Academia online</a><a href="planes.html">Suscripción para preguntas</a><a href="gratis.html">Recursos gratis</a></div>
+    <div><h5 class="mono" aria-level="2">Taller</h5><a href="taller.html">Servicios</a><a href="taller.html#ubicacion">Cómo llegar</a><a href="tel:+56987785601">+56 9 8778 5601</a><a href="tienda.html">Tienda</a></div>
+    <div><h5 class="mono" aria-level="2">Redes</h5><a href="https://www.instagram.com/frioaustralspa">Instagram de Frío Austral</a><a href="https://www.instagram.com/guillermo.gallardo.frioaustral/">Instagram de Guillermo</a><a href="https://www.tiktok.com/@frioaustral">TikTok</a><a href="https://www.youtube.com/@frio.austral">YouTube</a><a href="https://www.facebook.com/share/1AJrwUAzGu/">Facebook</a></div>
   </div>
-  <div class="wrap foot-legal"><span>© 2026 Frío Austral SpA</span><span>Cursos disponibles en la academia online.</span></div>
+  <div class="wrap foot-legal"><span>© 2026 Frío Austral SpA</span><span>Cursos disponibles con pago seguro.</span></div>
 </footer>
 <div class="mbar">
   <a class="btn btn-red" data-link="ver-cursos" href="cursos.html">Ver cursos</a>

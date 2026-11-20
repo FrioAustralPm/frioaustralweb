@@ -4,8 +4,7 @@ picture{display:block}
 .hero .ph-img.fa-hero-media{background:#05070b!important}
 .hero .fa-hero-poster,.hero .fa-hero-poster img{position:absolute;inset:0;width:100%;height:100%}
 .hero .fa-hero-poster img{object-fit:cover;object-position:50% 22%}
-.hero .ph-img.fa-hero-media video.hero-vid{position:absolute;inset:0;opacity:0;transition:opacity .6s;object-position:50% 22%!important}
-.hero .ph-img.fa-playing video.hero-vid{opacity:1}
+.hero .ph-img.fa-hero-media video.hero-vid{position:absolute;inset:0;display:block;opacity:1;background:transparent;object-position:50% 22%!important}
 @media(min-width:880px){.hero .fa-hero-poster img,.hero .ph-img.fa-hero-media video.hero-vid{object-position:62% 30%!important}}
 .hero video.hero-vid::cue{background:rgba(5,7,11,.78);color:#fff;font-size:15px}
 .fa-cap{position:absolute;z-index:2;left:50%;transform:translateX(-50%);width:min(92%,560px);margin:0;padding:6px 12px;border-radius:10px;background:rgba(5,7,11,.8);color:#fff;font:600 14px/1.4 Manrope,system-ui,sans-serif;text-align:center;opacity:0;transition:opacity .2s;pointer-events:none}
@@ -44,7 +43,6 @@ picture{display:block}
 .fa-cta-bg img{object-fit:cover;object-position:62% 35%}
 .v5-cta.fa-cta-media::before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(5,7,11,.92) 0%,rgba(5,7,11,.66) 45%,rgba(5,7,11,.92) 100%)}
 @media(max-width:879px){.fa-cta-bg img{object-position:66% 30%}}
-@media(prefers-reduced-motion:reduce){.hero .ph-img.fa-hero-media video.hero-vid{display:none}}
 /* V2 a lo ancho, arriba de la ficha y el temario */
 .cmain:has(.fa-v2){grid-template-columns:1fr!important}
 .cmain .m.fa-v2{aspect-ratio:16/9!important;min-height:0!important;max-height:none!important;height:auto}
@@ -61,16 +59,15 @@ picture{display:block}
 }
 /* ===== Plan de medios completo (feat/media-sitio-completo) ===== */
 /* I1: botón Activar sonido */
-.fa-sound{position:absolute;z-index:5;right:32px;top:96px;display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:999px;border:1.5px solid rgba(255,255,255,.35);background:rgba(5,7,11,.62);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:#fff;font:700 14px/1 Manrope,system-ui,sans-serif;cursor:pointer;transition:background .2s,border-color .2s}
-.fa-sound:hover{background:rgba(5,7,11,.85);border-color:var(--cyan,#4fd0f5)}
+.fa-sound{position:absolute;z-index:5;right:32px;top:96px;display:inline-flex;align-items:center;justify-content:center;gap:8px;width:42px;height:42px;padding:0;border-radius:50%;border:1px solid rgba(255,255,255,.28);background:rgba(5,7,11,.78);color:#fff;font:700 14px/1 Manrope,system-ui,sans-serif;cursor:pointer;transition:background .2s,border-color .2s}
+.fa-sound:hover{background:rgba(5,7,11,.92);border-color:var(--cyan,#4fd0f5)}
 .fa-sound:focus-visible{outline:2px solid var(--cyan,#4fd0f5);outline-offset:3px}
 .fa-sound svg{width:20px;height:20px}
 .fa-sound .w1,.fa-sound .w2{display:none}
 .fa-sound[aria-pressed="true"] .w1,.fa-sound[aria-pressed="true"] .w2{display:inline}
 .fa-sound[aria-pressed="true"] .x{display:none}
 .fa-sound[hidden]{display:none}
-@media(max-width:879px){.fa-sound{top:78px;right:12px;padding:9px 13px;font-size:13px}}
-@media(prefers-reduced-motion:reduce){.fa-sound{display:none!important}}
+@media(max-width:879px){.fa-sound{top:78px;right:12px;width:44px;height:44px}}
 .hero .fa-hero-poster img,.hero .ph-img.fa-hero-media video.hero-vid{object-position:50% 30%!important}
 @media(min-width:880px){.hero .fa-hero-poster img,.hero .ph-img.fa-hero-media video.hero-vid{object-position:62% 40%!important}}
 /* I4: una sola foto, 1:1 en celular */
@@ -145,3 +142,52 @@ picture{display:block}
 /* Nuestro equipo (taller): 16:9 en todas las pantallas para no recortar a nadie */
 .fa-equipo{margin:24px 0 0;border-radius:20px;overflow:hidden;border:1px solid rgba(255,255,255,.1)}
 .fa-equipo img{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:cover;object-position:50% 50%}
+
+/* ===== Hero premium (móvil y controles del video) =====
+   Reglas: ningún control ni subtítulo sobre la cara; la barra fija no tapa los botones del hero;
+   botones del mismo tamaño y sin partirse; encuadre del video con la cara centrada. */
+.fa-ctl{position:absolute;z-index:5;right:32px;top:92px;display:flex;flex-direction:row;align-items:center;justify-content:flex-end;gap:10px;max-width:calc(100% - 24px)}
+.fa-ctl .fa-sound{position:static;top:auto;right:auto;left:auto;white-space:nowrap}
+.fa-ctl .fa-sound[hidden]{display:none}
+.fa-ctl .fa-play{width:auto;height:auto;border-radius:999px;background:var(--red,#e0141f);border-color:transparent;color:#fff;padding:12px 20px;font-weight:700;box-shadow:0 10px 30px -10px rgba(224,20,31,.7)}
+.fa-ctl .fa-play:hover{background:var(--red2,#ff2a35);border-color:transparent}
+.hero.fa-blocked .fa-ctl .fa-sound:not(.fa-play):not(.fa-cc){display:none}
+.fa-ctl .fa-cc[aria-pressed="false"]{opacity:.75}
+.fa-cap.off{display:none}
+@media(max-width:879px){
+  section.hero{--hv:clamp(320px,88vw,400px);padding-top:calc(var(--hv) + 22px)!important;align-items:start!important;min-height:auto!important;padding-bottom:40px!important}
+  section.hero .ph-img{height:var(--hv)!important}
+  /* en el cuadro del video la cara está al 74% del ancho: a 100% queda casi centrada en el celular */
+  section.hero .fa-hero-poster img,section.hero .ph-img.fa-hero-media video.hero-vid{object-position:100% 50%!important}
+  section.hero::before{background:linear-gradient(180deg,rgba(5,7,11,.4) 0,rgba(5,7,11,0) 56px,rgba(5,7,11,0) calc(var(--hv) - 70px),#05070b var(--hv))!important}
+  /* controles abajo a la izquierda del video (zona libre), subtítulos sobre el torso, encima de los controles */
+  .fa-ctl{right:auto;left:14px;top:calc(var(--hv) - 54px);flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:flex-start}
+  .fa-ctl .fa-sound{width:44px;height:44px}
+  .fa-ctl .fa-play{width:auto;height:auto;padding:12px 18px;font-size:13px}
+  .fa-cap{top:auto;bottom:calc(100% - var(--hv) + 62px);width:min(88%,420px);font-size:14px;padding:6px 12px}
+  section.hero h1{font-size:clamp(38px,11vw,46px)!important;line-height:.98!important;max-width:12ch!important;margin-top:0!important}
+  section.hero .lead{font-size:16px!important;line-height:1.55!important;margin-top:14px!important;max-width:34em}
+  section.hero .h-acts{display:grid!important;grid-template-columns:1fr;gap:10px;margin-top:22px!important}
+  section.hero .h-acts .btn{width:100%;flex:none;min-height:52px;justify-content:center;align-items:center;white-space:nowrap;font-size:16px!important;padding:0 20px!important}
+  section.hero .hero-stats{margin-top:24px!important;padding-top:16px!important;gap:8px}
+  section.hero .hero-stats b{font-size:clamp(19px,5.6vw,24px)!important;white-space:nowrap}
+  section.hero .hero-stats span{font-size:12.5px!important}
+}
+
+/* Foto del curso principal (inicio): manómetros completos y centrados.
+   El recorte i4-curso-* ya viene centrado en los manómetros; aquí solo se fija el encuadre. */
+#cursos .cgrid .cmain .m picture img{object-position:50% 40%!important}
+@media(min-width:880px) and (max-width:1199px){
+  /* Con la foto en columna angosta se cortaban los manómetros: se apila y la foto va apaisada */
+  #cursos .cgrid .cmain{grid-template-columns:1fr!important}
+  #cursos .cgrid .cmain .m{height:auto!important;min-height:0!important;aspect-ratio:2/1!important}
+  #cursos .cgrid .cmain .m picture img{object-position:50% 20%!important}
+}
+@media(min-width:1200px) and (max-width:1439px){
+  #cursos .cgrid .cmain{grid-template-columns:1fr 1fr!important}
+}
+/* Hero alineado con el logo: el bloque de texto usa el mismo padding lateral que .nav (16px; 40px desde 1024px)
+   en todos los anchos. Antes .h-grid tenía un ancho máximo centrado (1320/1440px) y en ventanas anchas
+   (p.ej. Chrome maximizado a 1920px) el título quedaba ~200px a la derecha del logo. */
+section.hero .h-grid{width:auto!important;max-width:none!important;margin-inline:0!important;padding-inline:16px;box-sizing:border-box}
+@media(min-width:1024px){section.hero .h-grid{padding-inline:40px}}

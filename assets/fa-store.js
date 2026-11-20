@@ -31,7 +31,7 @@ async function applyHero(){const box=document.querySelector('.hero .ph-img');if(
  if(!s)return defaultHero();
  if(matchMedia('(prefers-reduced-motion: reduce)').matches&&s.type!=='yt'){box.innerHTML=media(s).replace(' autoplay','');return}
  box.innerHTML=media(s)}
-function renderShop(){const row=document.querySelector('.shop-row');if(!row)return;row.innerHTML=getCat().filter(p=>p.visible).map(card).join('')||'<p>No hay productos visibles.</p>'}
+function renderShop(){const row=document.querySelector('.shop-row');if(!row||row.hasAttribute('data-tienda'))return;row.innerHTML=getCat().filter(p=>p.visible).map(card).join('')||'<p>No hay productos visibles.</p>'}
 const LK='fa_links_v1';
 const LINKS={'ver-cursos':{label:'Ver cursos / Ver todos los cursos',href:'cursos.html',blank:false},
  'comprar-curso':{label:'Comprar curso (menú y hero)',href:'academia.html?c=aire-acondicionado-automotriz',blank:false},
@@ -56,8 +56,9 @@ document.addEventListener('DOMContentLoaded',()=>{if(!matchMedia('(prefers-reduc
 /* Acordeón de cursos (home): uno abierto a la vez */
 document.addEventListener('DOMContentLoaded',()=>{const bs=[...document.querySelectorAll('.fa-acc-btn')];
  bs.forEach(b=>b.addEventListener('click',()=>{const open=b.getAttribute('aria-expanded')!=='true';
-  bs.forEach(x=>{const on=x===b&&open;x.setAttribute('aria-expanded',on);x.closest('.oth').classList.toggle('fa-open',on);document.getElementById(x.getAttribute('aria-controls')).setAttribute('aria-hidden',!on)})}));
- bs.forEach(x=>document.getElementById(x.getAttribute('aria-controls')).setAttribute('aria-hidden','true'))});
+  bs.forEach(x=>{const on=x===b&&open;x.setAttribute('aria-expanded',on);x.closest('.oth').classList.toggle('fa-open',on);const p=document.getElementById(x.getAttribute('aria-controls'));p.setAttribute('aria-hidden',!on);p.inert=!on})}));
+ /* inert: los enlaces de un panel cerrado no reciben foco con Tab (antes quedaban enfocables aunque invisibles) */
+ bs.forEach(x=>{const p=document.getElementById(x.getAttribute('aria-controls'));p.setAttribute('aria-hidden','true');p.inert=true})});
 
 /* Estado Abierto/Cerrado del taller (Lun-Vie 9-18, hora de Chile) */
 document.addEventListener('DOMContentLoaded',()=>{const el=document.querySelector('[data-horario]');if(!el)return;

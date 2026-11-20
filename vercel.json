@@ -1,10 +1,23 @@
 {
   "cleanUrls": false,
   "trailingSlash": false,
-  "crons": [
-    { "path": "/api/cron/sync", "schedule": "0 10 * * *" }
+  "redirects": [
+    { "source": "/admin", "destination": "/equipo.html", "permanent": false },
+    { "source": "/admin.html", "destination": "/equipo.html", "permanent": false },
+    { "source": "/contenido", "destination": "/equipo.html#/paginas/inicio", "permanent": false },
+    { "source": "/contenido.html", "destination": "/equipo.html#/paginas/inicio", "permanent": false }
   ],
   "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
+        { "key": "Content-Security-Policy", "value": "base-uri 'self'; object-src 'none'; frame-ancestors 'self'" },
+        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=(), payment=(), usb=()" }
+      ]
+    },
     {
       "source": "/api/(.*)",
       "headers": [
@@ -13,19 +26,13 @@
       ]
     },
     {
-      "source": "/(mi-cuenta|equipo|admin).html",
+      "source": "/(mi-cuenta|equipo|admin|contenido).html",
       "headers": [
         { "key": "Cache-Control", "value": "no-store" },
         { "key": "X-Robots-Tag", "value": "noindex" },
         { "key": "Referrer-Policy", "value": "same-origin" },
-        { "key": "X-Frame-Options", "value": "DENY" }
-      ]
-    },
-    {
-      "source": "/(.*)",
-      "headers": [
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "Content-Security-Policy", "value": "base-uri 'self'; object-src 'none'; frame-ancestors 'none'" }
       ]
     }
   ]

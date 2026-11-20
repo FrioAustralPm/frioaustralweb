@@ -213,3 +213,18 @@ html{scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.18) transparent}
 .btn-red::after{background:linear-gradient(100deg,transparent,rgba(255,255,255,.22) 50%,transparent);transition:left .9s cubic-bezier(.2,.8,.2,1)}
 .btn-red:focus-visible::after{left:120%}
 @media (prefers-reduced-motion:reduce){.btn-red i,.btn-red .btn-arr{animation:none;transition:none}.btn-red:hover i,.btn-red:focus-visible i,.btn-red:hover .btn-arr,.btn-red:focus-visible .btn-arr{transform:none}.btn-red::after{display:none}}
+
+.fa-plan-kicker{display:block;letter-spacing:.12em;text-transform:uppercase;color:var(--ice,#9fe3ff);font-size:12px;margin:0 0 6px}
+.fa-plan-tag{color:#c9d5df;margin:10px 0 0;line-height:1.5;font-size:15px;max-width:36ch}
+.fa-soon{padding:28px 12px;text-align:center}
+.fa-soon b{display:block;font-family:var(--disp);font-size:28px;text-transform:uppercase;margin-bottom:8px}
+
+.fa-vid-form{display:grid;gap:10px;grid-template-columns:1fr;margin-bottom:12px}@media(min-width:760px){.fa-vid-form{grid-template-columns:1fr 2fr auto;align-items:end}}
+.fa-vid .fa-row{margin-top:8px;flex-wrap:wrap;gap:8px;align-items:center}
+.fa-eq-vids{margin:18px 0}.fa-eq-vids .fa-q{display:grid;gap:6px}
+
+.is-soon{opacity:.55;cursor:not-allowed;pointer-events:none}
+.fa-hm-note{margin:10px 0 0}
+
+/* Botones del hero: mismo tamaño en computador (en móvil ya van a todo el ancho) */
+@media(min-width:700px){section.hero .h-acts .btn{flex:0 0 196px;width:196px;justify-content:center;white-space:nowrap}}
