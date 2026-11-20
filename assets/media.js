@@ -36,13 +36,19 @@ function hero(){const v=document.querySelector('.hero video.hero-vid[data-media]
  const cc=document.createElement('button');cc.type='button';cc.className='fa-sound fa-cc';cc.setAttribute('aria-pressed','true');cc.setAttribute('aria-label','Ocultar subtítulos');cc.title='Ocultar subtítulos';
  cc.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10.5 10.2a2.2 2.2 0 1 0 0 3.6"/><path d="M16.5 10.2a2.2 2.2 0 1 0 0 3.6"/><path class="x" d="M4 20 20 4"/></svg>';
  ctl.appendChild(play);if(btn)ctl.appendChild(btn);ctl.appendChild(cc);hb.appendChild(ctl);
- const nextSrc=fix(v);v.preload='metadata';v.muted=true;v.autoplay=!rm;v.load();
+ const nextSrc=fix(v);
+ /* Safari/WebKit a veces quita el mute por dentro (~300 ms tras playing) y pausa el autoplay;
+    volume=0 + volver a mutear lo evita. El botón de sonido sigue pudiendo activar el audio. */
+ let started=false,want=!rm,inView=true,on=false,resuming=0;
+ const silence=()=>{if(on)return;v.muted=true;v.defaultMuted=true;v.setAttribute('muted','');if(v.volume!==0)v.volume=0};
+ v.preload='metadata';silence();v.autoplay=!rm;v.load();silence();
  /* autoplay: si el navegador lo bloquea (Brave Shields, ahorro de datos, etc.) queda el poster y un botón que sí funciona */
- let started=false,want=!rm,inView=true;
  const ok=()=>{hb.classList.remove('fa-blocked');play.hidden=true};
- v.addEventListener('playing',()=>{started=true;v.closest('.ph-img').classList.add('fa-playing')});
+ v.addEventListener('playing',()=>{started=true;silence();v.closest('.ph-img').classList.add('fa-playing')});
+ v.addEventListener('volumechange',silence);
+ v.addEventListener('pause',()=>{if(on||!want||document.hidden||!inView)return;silence();const now=Date.now();if(now-resuming<400)return;resuming=now;attempt()});
  const blocked=()=>{hb.classList.add('fa-blocked');play.hidden=false};
- const attempt=()=>{want=true;try{const p=v.play();if(p&&p.catch)p.catch(e=>{if(!e||e.name!=='AbortError')blocked()})}catch(e){blocked()}};
+ const attempt=()=>{want=true;silence();try{const p=v.play();if(p&&p.catch)p.catch(e=>{if(!e||e.name!=='AbortError')blocked()})}catch(e){blocked()}};
  if(rm)blocked();else attempt();
  /* vigilante: si el video no avanza (~3 s) aunque debería (autoplay pendiente sin promesa, decode atascado,
     red lenta, etc.) se muestra el botón y se prueba la siguiente fuente una vez. Si vuelve a avanzar, se oculta. */
@@ -50,12 +56,11 @@ function hero(){const v=document.querySelector('.hero video.hero-vid[data-media]
  setInterval(()=>{if(!want||document.hidden||!inView)return;
   if(v.currentTime!==lastT&&!v.paused){lastT=v.currentTime;stuck=0;if(started)ok();return}
   if(++stuck===3){blocked();if(!switched&&!started){switched=true;nextSrc()}}},1000);
- v.addEventListener('fa-fallback',()=>{if(!started)attempt()});
- play.addEventListener('click',()=>{v.muted=true;stuck=0;attempt()});
- if(!rm)['pointerdown','keydown','touchend'].forEach(ev=>addEventListener(ev,()=>{if(!started){v.muted=true;attempt()}},{once:true,passive:true}));
- let on=false;
+ v.addEventListener('fa-fallback',()=>{silence();if(!started)attempt()});
+ play.addEventListener('click',()=>{silence();stuck=0;attempt()});
+ if(!rm)['pointerdown','keydown','touchend'].forEach(ev=>addEventListener(ev,()=>{if(!started){silence();attempt()}},{once:true,passive:true}));
  const set=()=>{if(!btn)return;btn.setAttribute('aria-pressed',on?'true':'false');const t=on?'Silenciar':'Activar sonido';btn.setAttribute('aria-label',t);btn.title=t};
- if(btn){btn.hidden=false;btn.addEventListener('click',()=>{on=!on;if(on){v.currentTime=0;v.muted=false;v.play().catch(()=>{on=false;v.muted=true;set()})}else v.muted=true;set()})}
+ if(btn){btn.hidden=false;btn.addEventListener('click',()=>{on=!on;if(on){v.volume=1;v.currentTime=0;v.muted=false;v.play().catch(()=>{on=false;silence();set()})}else silence();set()})}
  if('IntersectionObserver' in window){new IntersectionObserver(es=>es.forEach(e=>{inView=e.isIntersecting;if(on)v.muted=!inView}),{threshold:.35}).observe(v)}
  /* subtítulos propios: sobre el torso, nunca sobre la cara; se pueden ocultar */
  const cap=document.createElement('p');cap.className='fa-cap';cap.setAttribute('aria-hidden','true');hb.appendChild(cap);
