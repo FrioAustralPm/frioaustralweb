@@ -4,9 +4,9 @@
   const FAP = window.FAP, A = FAP.A, { $, $$, esc, ico } = FAP;
   const C = window.FA_CONFIG || {};
   const root = $("#fap");
-  const NAV = [["resumen", "Resumen", "home"], ["mensajes", "Mensajes", "chat"], ["paginas", "Páginas del sitio", "photo"], ["planes", "Material de los planes", "folder"], ["accesos", "Accesos", "key"]];
-  const SHORT = { resumen: "Resumen", mensajes: "Mensajes", paginas: "Páginas", planes: "Material", accesos: "Accesos" };
-  const TITLES = { resumen: "Resumen", mensajes: "Mensajes", paginas: "Páginas del sitio", planes: "Material de los planes", accesos: "Accesos" };
+  const NAV = [["resumen", "Resumen", "home"], ["mensajes", "Mensajes", "chat"], ["paginas", "Páginas del sitio", "photo"], ["tienda", "Tienda", "bag"], ["planes", "Material de los planes", "folder"], ["accesos", "Accesos", "key"]];
+  const SHORT = { resumen: "Resumen", mensajes: "Mensajes", paginas: "Páginas", tienda: "Tienda", planes: "Material", accesos: "Accesos" };
+  const TITLES = { resumen: "Resumen", mensajes: "Mensajes", paginas: "Páginas del sitio", tienda: "Tienda", planes: "Material de los planes", accesos: "Accesos" };
   let email = "", timer = null, cleanup = null, badge = 0, routeAfterLogin = null;
   FAP.state = { email: "" };
 

@@ -31,7 +31,7 @@ async function applyHero(){const box=document.querySelector('.hero .ph-img');if(
  if(!s)return defaultHero();
  if(matchMedia('(prefers-reduced-motion: reduce)').matches&&s.type!=='yt'){box.innerHTML=media(s).replace(' autoplay','');return}
  box.innerHTML=media(s)}
-function renderShop(){const row=document.querySelector('.shop-row');if(!row)return;row.innerHTML=getCat().filter(p=>p.visible).map(card).join('')||'<p>No hay productos visibles.</p>'}
+function renderShop(){const row=document.querySelector('.shop-row');if(!row||row.hasAttribute('data-tienda'))return;row.innerHTML=getCat().filter(p=>p.visible).map(card).join('')||'<p>No hay productos visibles.</p>'}
 const LK='fa_links_v1';
 const LINKS={'ver-cursos':{label:'Ver cursos / Ver todos los cursos',href:'cursos.html',blank:false},
  'comprar-curso':{label:'Comprar curso (menú y hero)',href:'academia.html?c=aire-acondicionado-automotriz',blank:false},
